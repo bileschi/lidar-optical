@@ -156,11 +156,11 @@ if __name__ == "__main__":
 	try:
 		PointAligner.align(eval(sys.argv[1]),eval(sys.argv[2]),eval(sys.argv[3]),eval(sys.argv[4]))
 	except:
-		print "usage:\nPointAligner.py <points> <points> <r> <l>"\
+		print "PointAligner.py <points> <points> <r> <l>"\
 				"<points> : a list of pairs of points you want to align, e.g. [[0,0],[1,3]]\n"\
 				"<r> : number of rotational iterations you want to run the aligner for\n"\
 				"<l> : number of linear translations you want to run per rotational iteration\n"\
-				"N.B.: For smaller problems, <r> = 1 and <l> = 20 probably will suffice.\n"
+				"N.B.: For smaller problems, <r> = 1 and <l> = 20 probably will suffice."
 		sys.exit(2)
 
 
