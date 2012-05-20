@@ -1,0 +1,10 @@
+Getting to know matplot lib.  I'm using a system of packages put together by enthought.  They've helpfully assembled a set including matplotlib, scipy, numpy that all work nicely together. 
+
+The version I'm using is Python 2.7.2 |EPD_free 7.2-2 (32-bit)| (default, Sep  7 2011, 09:16:50) 
+It is available here: http://enthought.com/repo/free/
+
+
+There is an interactive mode, similar to MATLAB.  You can launch it from the command line:
+$ ipython --pylab
+
+I have this conveniently aliased to 'pylab'.
