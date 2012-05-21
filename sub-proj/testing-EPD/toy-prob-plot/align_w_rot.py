@@ -26,6 +26,14 @@ class PointAligner(object):
 			for j in range(len(points2)):
 				points2[j] = [points2[j][0]+unitAlf[0]*.1, points2[j][1]+unitAlf[1]*.1]
 			
+			com2 = PointAligner.centerOfMass(points2)
+			arf = PointAligner.aggregateAngularForce(points1, points2)
+
+			#print "aggregate rotational force = " + `arf`
+			for j in range(len(points2)):
+				points2[j] = PointAligner.rotate(points2[j][0], points2[j][1], com2[0], com2[1], arf*.1)
+				#PointAligner.length(alf[0], alf[1])
+			
 			print "------------------------------------------------------\npoints2 = " + `points2`
 			print
 
@@ -100,22 +108,77 @@ class PointAligner(object):
 		com = [xsum/len(points), ysum/len(points)]
 		return com
 
+	#takes all rotational forces between all sets of points, and adds them
+	@staticmethod
+	def aggregateAngularForce(points1, points2):
+		unitVecs = []
+		com1 = PointAligner.centerOfMass(points1)
+		com2 = PointAligner.centerOfMass(points2)
+
+		#calculate unit vectors in each theta angle
+		for (x1,y1) in points1:
+			for (x2,y2) in points2:
+
+				if (x1==x2 and y1==y2):
+					continue
+
+				r = PointAligner.distance(x1,y1,x2,y2)
+				x3 = x1-x2
+				y3 = y1-y2
+				tanVec = [com2[1]-y2,-(com2[0]-x2)]
+
+				if(tanVec[0]==0 and tanVec[1]==0):
+					continue
+
+				theta = math.acos( (x3*tanVec[0]-y3*tanVec[1]) / (PointAligner.length(x3,y3) * 
+								PointAligner.length(tanVec[0],tanVec[1])))
+				unitVecs.append( [[math.cos(theta), math.sin(theta)],r] )
+
+		#average the unit vectors
+		aggregate = [0,0]
+		totalWeight = 0
+		for [[x,y],r] in unitVecs:
+			aggregate[0] += x*r
+			aggregate[1] += y*r
+			totalWeight += r
+		print "agg = " + `aggregate`
+		if aggregate==[0,0]:
+			return 0;
+		return math.acos( (1*aggregate[0]) / ( PointAligner.length(aggregate[0],aggregate[1])))
+
+
+
+	#rotate x, y about center c1, c2, angle theta 
+	# COUNTERCLOCKWISE
+	#found at: http://content.gpwiki.org/index.php/VB:Tutorials:Rotating_A_Point_In_2D
+	@staticmethod
+	def rotate(x, y, c1, c2, theta):
+		r = PointAligner.distance(x,y,c1,c2)
+		return [c1 + ( math.cos(theta) * (x - c1) - math.sin(theta) * (y - c2) ), 
+					c2 + ( math.sin(theta) * (x - c1) + math.cos(theta) * (y - c2) ) ]
+
 
 
 if __name__ == "__main__":
 	err_x = random() * 3
 	err_y = random() * 3
+	err_rot = -random()/2
 	points1 = []
 	points2 = []
-	for i in range(1, 2000):
+	numPoints = 10
+	for i in range(1, numPoints+1):
 		x = random()
 		y = random()
 		points1.append([x, y])
 		points2.append([x + err_x, y + err_y])
 
+	com = PointAligner.centerOfMass(points2)
+	for i in range(1,numPoints+1):
+		points2[i-1] = PointAligner.rotate(points2[i-1][0],points2[i-1][1],com[0],com[1],err_rot)
+
 	PointAligner.align(
 			points1 = points1, 
 			points2 = points2,
-			iterations = 20)
+			iterations = 50)
 
 
