@@ -1,17 +1,17 @@
 #!/usr/bin/python
 import matplotlib.pyplot as plt
 
-def illustrate_points(points1, points2):
+def illustrate_points(img_pts, proj_pts):
 	"""scatter plot of two point sets"""
 	plt.figure(0)
 	plt.clf()
-	plt.plot([x for [x,y] in points1], [y for [x,y] in points1], 'ro')
-	plt.plot([x for [x,y] in points2], [y for [x,y] in points2], 'bx')
+	plt.plot([x for [x,y] in img_pts], [y for [x,y] in img_pts], 'ro')
+	plt.plot([x for [x,y] in proj_pts], [y for [x,y] in proj_pts], 'bx')
 	plt.axis([-7, 7, -5, 5])
 	plt.grid(True)
-	plt.title('points 1 in red.  points 2 in blue.')
-	plt.xlabel('this is x label')
-	plt.ylabel('this is y label')
+	plt.title('image points in red.  projection points in blue.')
+	plt.xlabel('x')
+	plt.ylabel('y')
 	plt.show()
 	plt.pause(0.01)
 
