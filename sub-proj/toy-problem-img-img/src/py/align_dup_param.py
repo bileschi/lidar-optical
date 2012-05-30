@@ -137,6 +137,39 @@ def associate_points_all_to_all(img_pts = [], proj_pts = []):
 	a['confidences'] = confidences
 	return a
 
+# Associate space points to nearby image points.
+def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
+	""" Returns a datastructure (dict) containing:
+	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
+	offsets: a list of vectors img_p - proj_p 
+	distances: the L2 magnitude of the offsets
+	confidences: a weight to be placed on this association
+
+	Within each list, the item at index i refers to the same association.
+	associates each projected space point to the nearest image point.
+	"""
+	pair_indicies = []
+	offsets = []
+	distances = []
+	confidences = []
+	for i_proj in range(0, len(proj_pts)):
+		min_dist = np.inf
+		for i_img in range(0, len(img_pts)):
+			offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
+			dist = np.linalg.norm((offset[0], offset[1]))
+			if dist < min_dist:
+				pair_indicies.append((i_img, i_proj))
+				offsets.append(offset)
+				distances.append(dist)
+				confidences.append(1)
+				min_dist = dist
+	a = {}
+	a['pair_indicies'] = pair_indicies
+	a['offsets'] = offsets
+	a['distances'] = distances
+	a['confidences'] = confidences
+	return a
+
 def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
@@ -178,7 +211,7 @@ if __name__ == "__main__":
 	# Simulation parameters
 	time_start = time()
 	noise_std = .25;
-	n_pts = 4;
+	n_pts = 15;
 	tru_proj_params = {
 	  'offset_x1': 1,
 	  'offset_x2': 0,
@@ -207,12 +240,13 @@ if __name__ == "__main__":
 			space_pts = space_pts,
 			projection_function = project_translate,
 			jacobian_fcn = proj_jacobian,
-			associate_fcn = associate_points_all_to_all,
+			# associate_fcn = associate_points_all_to_all,
+			associate_fcn = associate_points_all_to_nearest,
 			guess_params = guess_params,
-			iterations = 130,
+			iterations = 20,
 			# valid illustrate includes 'projection', 'association'
-			illustrate = set(),
-			# illustrate = set(['projection', 'association']),
+			# illustrate = set(),
+			illustrate = set(['projection', 'association']),
 			verbose_on = False)
 
 	# print results to console
