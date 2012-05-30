@@ -58,6 +58,7 @@ def estimate_projection_params(
 			img_pts = img_pts,
 			proj_pts = proj_pts,
 			space_pts = space_pts,
+			move_portion = 0.5,
 			n_params = n_params,
 			jacobian_fcn = jacobian_fcn)
 		new_proj_params = apply_param_update(
@@ -79,7 +80,7 @@ def apply_param_update(proj_params, param_updates, confidences):
 
 def assocs_to_updates(assocs, img_pts, proj_pts, space_pts, 
 	move_portion = 0.1, 
-	grace_dist = .10,
+	grace_dist = .010,
 	n_params = None, 
 	jacobian_fcn = None):
 	""" Input associations between img_pts and projected space points. Return
@@ -102,12 +103,6 @@ def assocs_to_updates(assocs, img_pts, proj_pts, space_pts,
 			Jinv = J.I # deriv of params WRT projection
 			param_updates[assoc_idx, :] = move_portion * Jinv.dot(offset)
 	return param_updates
-
-def proj_jacobian(proj_pt = None):
-	"""array element i,j is partial derivative projection dim j WRT
-	param i"""
-	return np.mat([[1.0, 1.0, 0.0, 0.0],
-				   [0.0, 0.0, 1.0, 1.0]], np.double);
 
 # Associate space points to nearby image points.
 def associate_points_all_to_all(img_pts = [], proj_pts = []):
@@ -178,30 +173,55 @@ def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
 	for i in range(1, n_pts):
-		x = random()
-		y = random()
+		x = random() - .5
+		y = random() - .5
 		space_pts.append((x, y))
 	return space_pts
 
 def img_pt_subtract(pt1, pt2):
 	return (pt1[0] - pt2[0], pt1[1] - pt2[1] )
 
+def proj_jacobian(space_pt = None):
+	"""array element i,j is partial derivative projection dim j WRT
+	param i"""
+	(space_x, space_y) = space_pt
+	if space_x > 0:
+		y2_sign = -1
+	else:
+		y2_sign = 1
+	if space_y > 0:
+		x2_sign = -1
+	else:
+		x2_sign = 1
+	return np.mat([[1.0, x2_sign * 1.0, 0.0, 0.0],
+				   [0.0, 0.0, 1.0, y2_sign * 1.0]], np.double);
+
 def project_translate(space_pt, proj_params = {}):
 	"""forward projection transform, parameterized 
 	offset_x1, offset_x2, offset_y1, offset_y2
 	proj_params can be a dict or any sequence. """
-	try:
-		o_x = proj_params['offset_x1'] + proj_params['offset_x2']
-		o_y = proj_params['offset_y1'] + proj_params['offset_y2']
-	except TypeError:
-		o_x = proj_params[0] + proj_params[1]
-		o_y = proj_params[2] + proj_params[3]
-	except ValueError:
-		o_x = proj_params[0] + proj_params[1]
-		o_y = proj_params[2] + proj_params[3]
 	(space_x, space_y) = space_pt
-	img_x = space_x + o_x
-	img_y = space_y + o_y
+	try:
+		o_x1 = proj_params['offset_x1']
+		o_x2 = proj_params['offset_x2']
+		o_y1 = proj_params['offset_y1']
+		o_y2 = proj_params['offset_y2']
+	except TypeError:
+		o_x1 = proj_params[0]
+		o_x2 = proj_params[1]
+		o_y1 = proj_params[2]
+		o_y2 = proj_params[3]
+	except ValueError:
+		o_x1 = proj_params[0]
+		o_x2 = proj_params[1]
+		o_y1 = proj_params[2]
+		o_y2 = proj_params[3]
+	if (space_x > 0):
+		o_y2 = -o_y2
+	if (space_y > 0):
+		o_x2 = -o_x2
+	img_x = space_x + o_x1 + o_x2
+	img_y = space_y + o_y1 + o_y2
 	img_pt = (img_x, img_y)
 	return img_pt
 
@@ -214,18 +234,23 @@ if __name__ == "__main__":
 
 	# Simulation parameters
 	time_start = time()
-	noise_std = .25;
-	n_pts = 15;
+	noise_std = .025;
+	n_pts = 25;
 	tru_proj_params = {
-	  'offset_x1': 1,
-	  'offset_x2': 0,
-	  'offset_y1': 2,
-	  'offset_y2': 0}
-	guess_params = {
-	  'offset_x1': 0,
-	  'offset_x2': 0,
-	  'offset_y1': 0,
-	  'offset_y2': 0}
+	  'offset_x1': random() - .5,
+	  'offset_x2': random() - .5,
+	  'offset_y1': random() - .5,
+	  'offset_y2': random() - .5}
+	guess_params = {}
+	for k in tru_proj_params.keys():
+		guess_params[k] = tru_proj_params[k] + random() * .5
+	# print to console the problem to solve.
+	print "guess offset = [%.2f, %.2f, %.2f, %.2f]" % (
+		guess_params['offset_x1'], guess_params['offset_x2'],
+	    guess_params['offset_y1'], guess_params['offset_y2'])
+	print "true offset = [%.2f, %.2f, %.2f, %.2f]" % (
+		tru_proj_params['offset_x1'], tru_proj_params['offset_x2'],
+	    tru_proj_params['offset_y1'], tru_proj_params['offset_y2'])
 
 	# generate random space points
 	space_pts = gen_rand_space_pts(n_pts)
@@ -254,25 +279,16 @@ if __name__ == "__main__":
 			verbose_on = False)
 
 	# print results to console
-	print "that took %f seconds" % (time() - time_start)
-	print "guess offset = [%.2f, %.2f]" % (
-		guess_params['offset_x1'] + guess_params['offset_x2'],
-	    guess_params['offset_y1'] + guess_params['offset_y2'])
-	print "true offset = [%.2f, %.2f]" % (
-		tru_proj_params['offset_x1'] + tru_proj_params['offset_x2'],
-	    tru_proj_params['offset_y1'] + tru_proj_params['offset_y2'])
-	print "est  offset = [%.2f, %.2f]" % (
-		est_params['offset_x1'] + est_params['offset_x2'],
-	    est_params['offset_y1'] + est_params['offset_y2'])
+	print "est  offset = [%.2f, %.2f, %.2f, %.2f]" % (
+		est_params['offset_x1'], est_params['offset_x2'],
+	    est_params['offset_y1'], est_params['offset_y2'])
 	g = np.array([guess_params[k] for k in guess_params.keys()])
-	g = np.array(g[0] + g[1], g[2] + g[3])
 	t = np.array([tru_proj_params[k] for k in guess_params.keys()])
-	t = np.array(t[0] + t[1], t[2] + t[3])
 	e = np.array([est_params[k] for k in guess_params.keys()])
-	e = np.array(e[0] + e[1], e[2] + e[3])
 	g_err = np.linalg.norm(g - t)
 	e_err =  np.linalg.norm(e - t)
 	recov = 1 - (e_err / g_err)
 	print "error recovery = %d%% (%.2f => %.2f)" % (round(recov*100), g_err, e_err)
+	print "that took %f seconds" % (time() - time_start)
 
 

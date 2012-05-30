@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import matplotlib.pyplot as plt
 
-def illustrate_points(img_pts, proj_pts):
+def illustrate_points(img_pts, proj_pts, draw_associations = True):
 	"""scatter plot of two point sets"""
 	plt.figure(0)
 	plt.clf()
@@ -12,8 +12,13 @@ def illustrate_points(img_pts, proj_pts):
 	plt.title('image points in red.  projection points in blue.')
 	plt.xlabel('x')
 	plt.ylabel('y')
+	if draw_associations:
+		for (img_idx, img_pt) in enumerate(img_pts):
+			draw_line(img_pts[img_idx], proj_pts[img_idx], color='#dddddd')
+
 	plt.show()
 	plt.pause(0.01)
+
 
 def illustrate_forces(force_list):
 	"""draws bar plot of force in x and y direction for a list of forces
