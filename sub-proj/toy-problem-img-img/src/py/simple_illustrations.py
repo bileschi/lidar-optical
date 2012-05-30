@@ -34,3 +34,14 @@ def illustrate_forces(force_list):
 	plt.title('y direction')
 	plt.show()
 	plt.pause(0.01)
+
+def illustrate_assoc(img_pts, proj_pts, assocs):
+	"""draws lines connecting associated img_pt / proj_pt pairs"""
+	for (img_idx, proj_idx) in assocs['pair_indicies']:
+		draw_line(img_pts[img_idx], proj_pts[proj_idx], color='g')
+	plt.show()
+	plt.pause(0.01)
+
+
+def draw_line(img_pt, proj_pt, color='g'):
+	plt.plot([img_pt[0], proj_pt[0]], [img_pt[1], proj_pt[1]], color = color)
