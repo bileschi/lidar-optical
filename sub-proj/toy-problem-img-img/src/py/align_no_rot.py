@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import pdb
 
-def align(
+def estimate_projection_params(
 	img_pts,
 	space_pts,
 	projection_function = None,
@@ -91,7 +91,7 @@ def assocs_to_updates(assocs, img_pts, proj_pts, space_pts,
 def proj_jacobian(proj_pt = None):
 	"""array element i,j is partial derivative projection dim j WRT
 	param i"""
-	return np.mat([[1, 0], [0, 1]], np.double)
+	return np.mat([[1.0, 0], [0, 1.0]], np.double)
 
 # Associate space points to nearby image points.
 def associate_points(img_pts = [], proj_pts = []):
@@ -112,7 +112,7 @@ def associate_points(img_pts = [], proj_pts = []):
 			pair_indicies.append((i_img, i_proj))
 			offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
 			offsets.append(offset)
-			distances.append(length(offset[0], offset[1]))
+			distances.append(np.linalg.norm((offset[0], offset[1])))
 			confidences.append(1)
 	a = {}
 	a['pair_indicies'] = pair_indicies
@@ -120,30 +120,9 @@ def associate_points(img_pts = [], proj_pts = []):
 	a['distances'] = distances
 	a['confidences'] = confidences
 	return a
-#distance between two points
-def distance(x1, y1, x2, y2):
-	return math.sqrt(pow(x1 - x2,2) + pow(y1 - y2,2))
-
-#linear force exterted between two points
-#current model is 1/sqrt
-def force_mag(d):
-	if d <= .10:
-		return (10 * d) * 0.316 # linear drop off within .1
-	return 1/pow(d, .5)
-
-# vector magnitude
-def length(x, y):
-	return distance(x, y, 0, 0)
-
-#takes a vector in and returns the unit vector in the same direction
-def unitVector(v):
-	d = distance(0,0,v[0],v[1])
-	if d==0:
-		return [0,0]
-	return [v[0]/d, v[1]/d]
 
 def gen_rand_space_pts(n_pts = 5):
-	" picks n_pts randomly in unit box"
+	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
 	for i in range(1, n_pts):
 		x = random()
@@ -155,7 +134,8 @@ def img_pt_subtract(pt1, pt2):
 	return (pt1[0] - pt2[0], pt1[1] - pt2[1] )
 
 def project_translate(space_pt, proj_params = {'offset_x': 1, 'offset_y': 2}):
-	"""forward projection transform, parameterized offset_x, offset_y """
+	"""forward projection transform, parameterized offset_x, offset_y
+	proj_params can be a dict or any sequence. """
 	try:
 		o_x = proj_params['offset_x']
 		o_y = proj_params['offset_y']
@@ -171,34 +151,43 @@ def project_translate(space_pt, proj_params = {'offset_x': 1, 'offset_y': 2}):
 	img_pt = (img_x, img_y)
 	return img_pt
 
+##########
+## MAIN ##
+##########
+
 if __name__ == "__main__":
 	from time import time
+
 	# Simulation parameters
 	time_start = time()
 	noise_std = .25;
 	n_pts = 5;
 	tru_proj_params = {'offset_x': 1, 'offset_y': 2}
 	guess_params = {'offset_x': 0, 'offset_y': 0}
+
 	# generate random space points
 	space_pts = gen_rand_space_pts(n_pts)
-	# calculate noisy images of those points
+
+	# img_pts = true projection of space_pts + some noise
 	img_pts = []
 	for space_pt in space_pts:
 		(img_x, img_y) = project_translate(space_pt, tru_proj_params)
 		noise_x = random() * noise_std
 		noise_y = random() * noise_std
 		img_pts.append((img_x + noise_x, img_y + noise_y))
-	# perform optimization procedure
-	est_params = align(
+
+	# perform optimization procedure to estimate true projection params
+	est_params = estimate_projection_params(
 			img_pts = img_pts, 
 			space_pts = space_pts,
 			projection_function = project_translate,
 			guess_params = guess_params,
-			iterations = 30,
+			iterations = 10,
 			# valid illustrate includes 'projection', 'association'
-			illustrate = set(),
-			# illustrate = set(['projection', 'association']),
+			# illustrate = set(),
+			illustrate = set(['projection', 'association']),
 			verbose_on = False)
+
 	# print results to console
 	print "that took %f seconds" % (time() - time_start)
 	print "true offset = [%f, %f]" % (tru_proj_params['offset_x'], tru_proj_params['offset_y'])
