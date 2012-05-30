@@ -25,7 +25,6 @@ def estimate_projection_params(
 	if(verbose_on):
 		print "img_pts = " + `img_pts` + " and space_pts = " + `space_pts` + ".\n"\
 				"aligning with " + `iterations` + "\iterations."
-	accumulated_offset = [0, 0]
 	for i in range(iterations):
 		# project the space points into the image domain
 		proj_pts = [projection_function(s_pt, proj_params) for s_pt in space_pts]
