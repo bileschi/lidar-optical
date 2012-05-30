@@ -24,6 +24,7 @@ def estimate_projection_params(
 	space_pts,
 	projection_function = None,
 	jacobian_fcn = None,
+	associate_fcn = None,
 	guess_params = None,
 	iterations = 20,
 	illustrate = set(),
@@ -49,7 +50,7 @@ def estimate_projection_params(
 		# creating associated pairs.  Each pair infers an offset in image space.
 		# This offset infers a confidence in the association and a parameter
 		# manipulation to align the points.
-		assocs = associate_points(img_pts = img_pts, proj_pts = proj_pts)
+		assocs = associate_fcn(img_pts = img_pts, proj_pts = proj_pts)
 		if ('association' in illustrate):
 			illustrate_assoc(img_pts = img_pts, proj_pts = proj_pts, assocs = assocs)
 		# From each association, compute a suggested parameter update.
@@ -109,7 +110,7 @@ def proj_jacobian(proj_pt = None):
 				   [0.0, 0.0, 1.0, 1.0]], np.double);
 
 # Associate space points to nearby image points.
-def associate_points(img_pts = [], proj_pts = []):
+def associate_points_all_to_all(img_pts = [], proj_pts = []):
 	""" Returns a datastructure (dict) containing:
 	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
 	offsets: a list of vectors img_p - proj_p 
@@ -177,7 +178,7 @@ if __name__ == "__main__":
 	# Simulation parameters
 	time_start = time()
 	noise_std = .25;
-	n_pts = 5;
+	n_pts = 4;
 	tru_proj_params = {
 	  'offset_x1': 1,
 	  'offset_x2': 0,
@@ -206,19 +207,23 @@ if __name__ == "__main__":
 			space_pts = space_pts,
 			projection_function = project_translate,
 			jacobian_fcn = proj_jacobian,
+			associate_fcn = associate_points_all_to_all,
 			guess_params = guess_params,
-			iterations = 10,
+			iterations = 130,
 			# valid illustrate includes 'projection', 'association'
-			# illustrate = set(),
-			illustrate = set(['projection', 'association']),
+			illustrate = set(),
+			# illustrate = set(['projection', 'association']),
 			verbose_on = False)
 
 	# print results to console
 	print "that took %f seconds" % (time() - time_start)
-	print "true offset = [%f, %f]" % (
+	print "guess offset = [%.2f, %.2f]" % (
+		guess_params['offset_x1'] + guess_params['offset_x2'],
+	    guess_params['offset_y1'] + guess_params['offset_y2'])
+	print "true offset = [%.2f, %.2f]" % (
 		tru_proj_params['offset_x1'] + tru_proj_params['offset_x2'],
 	    tru_proj_params['offset_y1'] + tru_proj_params['offset_y2'])
-	print "est  offset = [%f, %f]" % (
+	print "est  offset = [%.2f, %.2f]" % (
 		est_params['offset_x1'] + est_params['offset_x2'],
 	    est_params['offset_y1'] + est_params['offset_y2'])
 	g = np.array([guess_params[k] for k in guess_params.keys()])
@@ -230,6 +235,6 @@ if __name__ == "__main__":
 	g_err = np.linalg.norm(g - t)
 	e_err =  np.linalg.norm(e - t)
 	recov = 1 - (e_err / g_err)
-	print "error recovery = %d%% (%f => %f)" % (round(recov*100), g_err, e_err)
+	print "error recovery = %d%% (%.2f => %.2f)" % (round(recov*100), g_err, e_err)
 
 

@@ -1,1 +1,8 @@
 Testing alignment procedures.
+
+align_no_rot : 
+Space and image points both lie in the 2d plane.  Projection is a simple translation.  Parameters offset_x and offset_y are determined by the estmate_projection_parameters function.
+
+align_dup_param :
+Modified form align_no_rot.  Space and image points both lie in the 2d plane.  Projection is a simple translation.  Parameters are duplicated, so projection parameterized by [x1,x2,y1,y2] is the same as [x3,x4,y3,y4] iff x1+x2 == x3+x4 and y1+y2 == y3+y4.
+
