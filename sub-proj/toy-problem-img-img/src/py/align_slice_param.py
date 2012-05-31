@@ -9,13 +9,15 @@ import pdb
 """
 align_dup_param:
 
-Matches points in the 2-d plane to translated points in the 2-d plane just like
-align_no_rot.py.  I.e., the projection function is a simple translation.  The
-twist in this version is that there are 4 translation parameters:
- {offset_x1, offset_x2, offset_y1, offset_y2}.  
-Offset_x1 and offset_x2 do exactly the same thing.  How does the optimization
-procedure deal with the dimensionality mismatch?  If the projection is off in x,
-the jacobian will suggest modifying both parameters in the same way.
+Matches points in a 2-d plane to transformed points in the 2-d plane.
+
+The projection function has four parameters: offset_x, slice_x, offset_y, and
+ slice_y.  the offset parameters translate the input point.  The slice parameters
+ do the same, but the direction of the offset depends on the original position
+ of the point.
+
+This experiment was built to test a param-image jacboian which depends on the
+ space point being projected
 """
 
 
@@ -169,6 +171,41 @@ def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
 	a['confidences'] = confidences
 	return a
 
+# Associate space points to image points at the same index.
+def associate_points_cheating(img_pts = [], proj_pts = []):
+	""" Returns a datastructure (dict) containing:
+	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
+	offsets: a list of vectors img_p - proj_p 
+	distances: the L2 magnitude of the offsets
+	confidences: a weight to be placed on this association
+
+	Within each list, the item at index i refers to the same association.
+	associates each projected space point to the nearest image point.
+
+	This degenerate association gives the exact correct association
+	in the case where the img_pts are exactly the true projections of
+	the incorrectly projected proj_pts
+	"""
+	pair_indicies = []
+	offsets = []
+	distances = []
+	confidences = []
+	for i_proj in range(0, len(proj_pts)):
+		i_img = i_proj
+		offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
+		dist = np.linalg.norm((offset[0], offset[1]))
+		pair_indicies.append((i_img, i_proj))
+		offsets.append(offset)
+		distances.append(dist)
+		confidences.append(1)
+	a = {}
+	a['pair_indicies'] = pair_indicies
+	a['offsets'] = offsets
+	a['distances'] = distances
+	a['confidences'] = confidences
+	return a
+
+
 def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
@@ -234,8 +271,8 @@ if __name__ == "__main__":
 
 	# Simulation parameters
 	time_start = time()
-	noise_std = .025;
-	n_pts = 25;
+	noise_std = .25;
+	n_pts = 20;
 	tru_proj_params = {
 	  'offset_x1': random() - .5,
 	  'offset_x2': random() - .5,
@@ -243,7 +280,7 @@ if __name__ == "__main__":
 	  'offset_y2': random() - .5}
 	guess_params = {}
 	for k in tru_proj_params.keys():
-		guess_params[k] = tru_proj_params[k] + random() * .5
+		guess_params[k] = tru_proj_params[k] + random() * 2.5
 	# print to console the problem to solve.
 	print "guess offset = [%.2f, %.2f, %.2f, %.2f]" % (
 		guess_params['offset_x1'], guess_params['offset_x2'],
@@ -270,7 +307,8 @@ if __name__ == "__main__":
 			projection_function = project_translate,
 			jacobian_fcn = proj_jacobian,
 			# associate_fcn = associate_points_all_to_all,
-			associate_fcn = associate_points_all_to_nearest,
+			# associate_fcn = associate_points_all_to_nearest,
+			associate_fcn = associate_points_cheating,
 			guess_params = guess_params,
 			iterations = 40,
 			# valid illustrate includes 'projection', 'association'
