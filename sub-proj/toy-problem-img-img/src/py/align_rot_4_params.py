@@ -7,12 +7,11 @@ import copy
 import pdb
 
 """
-align_rot_1_param:
+align_rot_4_param:
 
-Only parameter controls rotation around origin.  
+Four free parameters, one for each element in 2x2 projection matrix.  
 
-Jacobian depends on space point.  Certain offsets, i.e. radial offsets, are not
-  solvable via parameter adjustments.
+True parameter settings are a rotation matrix.
 """
 
 
@@ -51,14 +50,15 @@ def estimate_projection_params(
 		if ('association' in illustrate):
 			illustrate_assoc(img_pts = img_pts, proj_pts = proj_pts, assocs = assocs)
 		if ('jacobian' in illustrate):
-			illustrate_jacobian(
-				space_pts = [(x/4.0,y/4.0) for x in range(-12, 12, 3) for y in range(-12,12,3)],
-				proj_fcn = projection_fcn,
-				jacobian_fcn = jacobian_fcn, 
-				current_params = proj_params,
-				figure_idx = 1,
-				clear_figure_first = True,
-				param_idx = 0)
+			for i_param in range(0, n_params):
+				illustrate_jacobian(
+					space_pts = [(x/4.0,y/4.0) for x in range(-12, 12, 3) for y in range(-12,12,3)],
+					proj_fcn = projection_fcn,
+					jacobian_fcn = jacobian_fcn, 
+					current_params = proj_params,
+					figure_idx = i_param + 10,
+					clear_figure_first = True,
+					param_idx = i_param)
 		# From each association, compute a suggested parameter update.
 		param_update_list = assocs_to_updates(assocs = assocs, 
 			img_pts = img_pts,
@@ -242,29 +242,35 @@ def proj_rotate_jacobian(space_pt = None, current_params = None):
 	Output:
 	Output array[m,n] is partial derivative of i[m] W.R.T. p[n]
 	"""
-	(x, y) = space_pt
-	th = current_params[0]
-	c = np.cos(th)
-	s = np.sin(th)
-	return -np.mat([[ -x * s - y * c],
-				   [  x * c - y * s]], np.double);
+	(sx, sy) = space_pt
+	m00 = current_params[0]
+	m01 = current_params[1]
+	m10 = current_params[2]
+	m11 = current_params[3]
+	return -np.mat([[ sx, sy, 0, 0],
+				   [  0, 0, sx, sy]], np.double);
 
 def project_rotate(space_pt, proj_params = {}):
-	"""forward projection transform, parameterized 
-	rads_th
-	Rotates around origin. """
+	"""applies proj_params as a matrix multiply """
 	(space_x, space_y) = space_pt
+	M = np.zeros((2,2))
 	try:
-		rads_th = proj_params['rads_th']
+		M[0,0] = proj_params['mat_00']
+		M[0,1] = proj_params['mat_01']
+		M[1,0] = proj_params['mat_10']
+		M[1,1] = proj_params['mat_11']
 	except TypeError:
-		rads_th = proj_params[0]
+		M[0,0] = proj_params[0]
+		M[0,1] = proj_params[1]
+		M[1,0] = proj_params[2]
+		M[1,1] = proj_params[3]
 	except ValueError:
-		rads_th = proj_params[0]
-	c = np.cos(rads_th)
-	s = np.sin(rads_th)
-	img_x = space_x * c - space_y * s
-	img_y = space_x * s + space_y * c
-	img_pt = (img_x, img_y)
+		M[0,0] = proj_params[0]
+		M[0,1] = proj_params[1]
+		M[1,0] = proj_params[2]
+		M[1,1] = proj_params[3]
+	i = M.dot(np.array(space_pt))
+	img_pt = (i[0], i[1])
 	return img_pt
 
 ##########
@@ -278,16 +284,29 @@ if __name__ == "__main__":
 	time_start = time()
 	noise_std = .0025;
 	n_pts = 25;
+	real_rot = random()
 	tru_proj_params = {
-	  'rads_th': random() - .5
+	  'mat_00': np.cos(real_rot),
+	  'mat_01': np.sin(real_rot),
+	  'mat_10': -np.sin(real_rot),
+	  'mat_11': np.cos(real_rot)
 	}
+	guess_rot = real_rot + .5 
 	guess_params = {}
-	for k in tru_proj_params.keys():
-		guess_params[k] = tru_proj_params[k] + 1 * random()
+	guess_params = {
+	  'mat_00': np.cos(guess_rot),
+	  'mat_01': np.sin(guess_rot),
+	  'mat_10': -np.sin(guess_rot),
+	  'mat_11': np.cos(guess_rot)
+	}
 
 	# print to console the problem to solve.
-	print "guess params = [%.2f]" % (guess_params['rads_th'])
-	print "true  params = [%.2f]" % (tru_proj_params['rads_th'])
+	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
+	   (guess_params['mat_00'], guess_params['mat_01'],
+	    guess_params['mat_10'], guess_params['mat_11'])
+	print "true  params = [%.2f, %.2f, %.2f, %.2f]" % \
+	   (tru_proj_params['mat_00'], tru_proj_params['mat_01'],
+	    tru_proj_params['mat_10'], tru_proj_params['mat_11'])
 
 	# generate random space points
 	space_pts = gen_rand_space_pts(n_pts)
@@ -307,19 +326,25 @@ if __name__ == "__main__":
 			projection_fcn = project_rotate,
 			jacobian_fcn = proj_rotate_jacobian,
 			# associate_fcn = associate_points_all_to_all,
-			associate_fcn = associate_points_all_to_nearest,
-			# associate_fcn = associate_points_cheating,
+			# associate_fcn = associate_points_all_to_nearest,
+			associate_fcn = associate_points_cheating,
 			guess_params = guess_params,
-			iterations = 20,
+			iterations = 10,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
 			# illustrate = set(),
 			illustrate = set(['projection', 'association', 'jacobian']),
 			verbose_on = True)
 
 	# print results to console
-	print "guess params = [%.2f]" % (guess_params['rads_th'])
-	print "true  params = [%.2f]" % (tru_proj_params['rads_th'])
-	print "est   params = [%.2f]" % (est_params['rads_th'])
+	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
+	   (guess_params['mat_00'], guess_params['mat_01'],
+	    guess_params['mat_10'], guess_params['mat_11'])
+	print "true  params = [%.2f, %.2f, %.2f, %.2f]" % \
+	   (tru_proj_params['mat_00'], tru_proj_params['mat_01'],
+	    tru_proj_params['mat_10'], tru_proj_params['mat_11'])
+	print "est   params = [%.2f, %.2f, %.2f, %.2f]" % \
+	   (est_params['mat_00'], est_params['mat_01'],
+	    est_params['mat_10'], est_params['mat_11'])
 	g = np.array([guess_params[k] for k in guess_params.keys()])
 	t = np.array([tru_proj_params[k] for k in guess_params.keys()])
 	e = np.array([est_params[k] for k in guess_params.keys()])
