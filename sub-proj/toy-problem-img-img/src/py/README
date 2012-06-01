@@ -11,3 +11,6 @@ Modified from align_dup_param :  The goal is to have parameters for which the va
 
 align_rot_1_param :
 projection has a single parameter representing rotation around the origin.   
+
+align_rot_4_param :
+Still a rotation solution problem, but there is now one parameter for each element in the rotation matrix.  The downside is that the estimate may (with high liklihood) produce a solution which is not actually a rotation matrix.  The upside is that the code is simpler, and the found solution seems to remove as much of the parameter error as the align_rot_1_param solution.
