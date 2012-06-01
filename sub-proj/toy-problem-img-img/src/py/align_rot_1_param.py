@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import math, sys, getopt
 from random import random
-from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc
+from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
 import numpy as np
 import copy
 import pdb
@@ -19,7 +19,7 @@ Jacobian depends on space point.  Certain offsets, i.e. radial offsets, are not
 def estimate_projection_params(
 	img_pts,
 	space_pts,
-	projection_function = None,
+	projection_fcn = None,
 	jacobian_fcn = None,
 	associate_fcn = None,
 	guess_params = None,
@@ -37,7 +37,7 @@ def estimate_projection_params(
 	n_pts2 = len(space_pts)
 	for i in range(iterations):
 		# project the space points into the image domain
-		proj_pts = [projection_function(s_pt, proj_params) for s_pt in space_pts]
+		proj_pts = [projection_fcn(s_pt, proj_params) for s_pt in space_pts]
 		# Draw current state of alignment
 		if ('projection' in illustrate):
 			illustrate_points(img_pts = img_pts, proj_pts = proj_pts)
@@ -50,16 +50,24 @@ def estimate_projection_params(
 		assocs = associate_fcn(img_pts = img_pts, proj_pts = proj_pts)
 		if ('association' in illustrate):
 			illustrate_assoc(img_pts = img_pts, proj_pts = proj_pts, assocs = assocs)
+		if ('jacobian' in illustrate):
+			illustrate_jacobian(
+				space_pts = [(x/4.0,y/4.0) for x in range(-12, 12, 3) for y in range(-12,12,3)],
+				proj_fcn = projection_fcn,
+				jacobian_fcn = jacobian_fcn, 
+				current_params = proj_params,
+				figure_idx = 1,
+				clear_figure_first = True,
+				param_idx = 0)
 		# From each association, compute a suggested parameter update.
 		param_update_list = assocs_to_updates(assocs = assocs, 
 			img_pts = img_pts,
 			proj_pts = proj_pts,
 			space_pts = space_pts,
-			move_portion = 1.0,
+			move_portion = 0.5,
 			n_params = n_params,
 			jacobian_fcn = jacobian_fcn,
 			current_params = proj_params)
-		print param_update_list
 		new_proj_params = apply_param_update(
 			proj_params, param_update_list, assocs['confidences'])
 		proj_params = copy.deepcopy(new_proj_params)
@@ -102,7 +110,7 @@ def assocs_to_updates(assocs, img_pts, proj_pts, space_pts,
 			# derivative of projection WRT params
 			J = jacobian_fcn(space_pt, current_params = current_params)
 			Jinv = J.I # deriv of params WRT projection
-			param_updates[assoc_idx, :] = move_portion * Jinv.dot(offset)
+			param_updates[assoc_idx, :] = -move_portion * Jinv.dot(offset)
 	return param_updates
 
 # Associate space points to nearby image points.
@@ -209,22 +217,36 @@ def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
 	for i in range(1, n_pts):
-		x = random() - .5
-		y = random() - .5
+		x = 2 * random() - 1
+		y = 2 * random() - 1
 		space_pts.append((x, y))
+
 	return space_pts
 
 def img_pt_subtract(pt1, pt2):
 	return (pt1[0] - pt2[0], pt1[1] - pt2[1] )
 
 def proj_rotate_jacobian(space_pt = None, current_params = None):
-	"""array element i,j is partial derivative projection dim j WRT
-	param i"""
+	"""
+	Let i = f(s,p) where f is a function from space S to space I.
+	f is the function calculating the projection of s, parameterized by p. 
+
+	This function calculates the partial derivatives of i with respect to 
+	p.  In general, the derivative may depend on the space_point s.
+
+	
+	Input:
+	space_pt: the tuple representing the point in space to project
+	current_params: p.  a dict or sequence indicating the current param settings p
+
+	Output:
+	Output array[m,n] is partial derivative of i[m] W.R.T. p[n]
+	"""
 	(x, y) = space_pt
-	space_rads = np.arctan2(x, y)
-	c = np.cos(space_rads)
-	s = np.sin(space_rads)
-	return np.mat([[ -x * s - y * c],
+	th = current_params[0]
+	c = np.cos(th)
+	s = np.sin(th)
+	return -np.mat([[ -x * s - y * c],
 				   [  x * c - y * s]], np.double);
 
 def project_rotate(space_pt, proj_params = {}):
@@ -255,13 +277,14 @@ if __name__ == "__main__":
 	# Simulation parameters
 	time_start = time()
 	noise_std = .0025;
-	n_pts = 5;
+	n_pts = 25;
 	tru_proj_params = {
 	  'rads_th': random() - .5
 	}
 	guess_params = {}
 	for k in tru_proj_params.keys():
-		guess_params[k] = tru_proj_params[k] + .1#1 * random()
+		guess_params[k] = tru_proj_params[k] + 1 * random()
+
 	# print to console the problem to solve.
 	print "guess params = [%.2f]" % (guess_params['rads_th'])
 	print "true  params = [%.2f]" % (tru_proj_params['rads_th'])
@@ -281,19 +304,21 @@ if __name__ == "__main__":
 	est_params = estimate_projection_params(
 			img_pts = img_pts, 
 			space_pts = space_pts,
-			projection_function = project_rotate,
+			projection_fcn = project_rotate,
 			jacobian_fcn = proj_rotate_jacobian,
 			# associate_fcn = associate_points_all_to_all,
-			# associate_fcn = associate_points_all_to_nearest,
-			associate_fcn = associate_points_cheating,
+			associate_fcn = associate_points_all_to_nearest,
+			# associate_fcn = associate_points_cheating,
 			guess_params = guess_params,
 			iterations = 20,
-			# valid illustrate includes 'projection', 'association'
+			# valid illustrate includes 'projection', 'association', 'jacobian'
 			# illustrate = set(),
-			illustrate = set(['projection', 'association']),
-			verbose_on = False)
+			illustrate = set(['projection', 'association', 'jacobian']),
+			verbose_on = True)
 
 	# print results to console
+	print "guess params = [%.2f]" % (guess_params['rads_th'])
+	print "true  params = [%.2f]" % (tru_proj_params['rads_th'])
 	print "est   params = [%.2f]" % (est_params['rads_th'])
 	g = np.array([guess_params[k] for k in guess_params.keys()])
 	t = np.array([tru_proj_params[k] for k in guess_params.keys()])
