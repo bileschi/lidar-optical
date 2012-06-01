@@ -217,8 +217,8 @@ def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
 	for i in range(1, n_pts):
-		x = 2 * random() - 1
-		y = 2 * random() - 1
+		x = 8 * random() - 4
+		y = 8 * random() - 4
 		space_pts.append((x, y))
 
 	return space_pts
@@ -326,13 +326,14 @@ if __name__ == "__main__":
 			projection_fcn = project_rotate,
 			jacobian_fcn = proj_rotate_jacobian,
 			# associate_fcn = associate_points_all_to_all,
-			# associate_fcn = associate_points_all_to_nearest,
-			associate_fcn = associate_points_cheating,
+			associate_fcn = associate_points_all_to_nearest,
+			# associate_fcn = associate_points_cheating,
 			guess_params = guess_params,
-			iterations = 10,
+			iterations = 20,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
 			# illustrate = set(),
-			illustrate = set(['projection', 'association', 'jacobian']),
+			illustrate = set(['projection']),
+			#illustrate = set(['projection', 'association', 'jacobian']),
 			verbose_on = True)
 
 	# print results to console
