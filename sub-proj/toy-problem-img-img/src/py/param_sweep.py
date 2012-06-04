@@ -7,11 +7,12 @@ import copy
 import pdb
 
 """
-align_rot_4_param:
+param_sweep.py:
 
-Four free parameters, one for each element in 2x2 projection matrix.  
+based on align_rot_4_param.py
 
-True parameter settings are a rotation matrix.
+adds spurious points, and tests for robustness against these points.
+
 """
 
 
@@ -274,6 +275,65 @@ def project_rotate(space_pt, proj_params = {}):
 	img_pt = (i[0], i[1])
 	return img_pt
 
+
+def estimate_error_recovery(guess_params, est_params, tru_proj_params):
+	"""
+		@param guess_params 	are the intial placement in the space,
+		@param est_params 		are the estimated parameters of alignment
+		@param tru_proj_params 	are the actual offset that the projection 
+							points from the img points
+		@return [percent recovered, norm(guess_params), norm(est_params)]
+	"""
+	g = np.array([guess_params[k] for k in guess_params.keys()])
+	t = np.array([tru_proj_params[k] for k in guess_params.keys()])
+	e = np.array([est_params[k] for k in guess_params.keys()])
+	g_err = np.linalg.norm(g - t)
+	e_err =  np.linalg.norm(e - t)
+	percnt = round((1 - (e_err / g_err))*100, 2)
+	return [percnt, g_err, e_err]
+
+def proceed_until(	img_pts, 
+				space_pts, 
+				tru_proj_params,
+				projection_fcn = None,
+				jacobian_fcn = None,
+				associate_fcn = None,
+				guess_params = None,
+				illustrate = set(),
+				verbose_on = True,
+				max_itr = 20, 
+				perc_recov_required = 90):
+
+	steps_done = 0
+	perc_recov = 0
+	g_err = np.inf
+	e_err = np.inf
+	cur_est_params = guess_params
+	while (steps_done < max_itr and perc_recov < perc_recov_required):
+		cur_est_params = estimate_projection_params(	img_pts = img_pts,
+											space_pts = space_pts,
+											projection_fcn = projection_fcn,
+											jacobian_fcn = jacobian_fcn,
+											associate_fcn = associate_fcn,
+											guess_params = cur_est_params,
+											iterations = 1,
+											illustrate = illustrate,
+											verbose_on = False
+											)
+
+		[perc_recov, g_err, e_err]  = estimate_error_recovery(guess_params, cur_est_params, 
+								tru_proj_params)
+		steps_done+=1
+		if verbose_on:
+			print `steps_done` + " of " + `max_itr`
+		
+	if steps_done == max_itr:
+		return ["not finished"]
+	elif perc_recov >= perc_recov_required:
+		return ["finished", steps_done, perc_recov]
+	else:
+		return ["an error occurred"]
+
 ##########
 ## MAIN ##
 ##########
@@ -320,22 +380,25 @@ if __name__ == "__main__":
 		noise_y = random() * noise_std
 		img_pts.append((img_x + noise_x, img_y + noise_y))
 
-	# perform optimization procedure to estimate true projection params
-	est_params = estimate_projection_params(
-			img_pts = img_pts, 
-			space_pts = space_pts,
-			projection_fcn = project_rotate,
-			jacobian_fcn = proj_rotate_jacobian,
-			# associate_fcn = associate_points_all_to_all,
-			# associate_fcn = associate_points_all_to_nearest,
-			associate_fcn = associate_points_cheating,
-			guess_params = guess_params,
-			iterations = 2,
-			# valid illustrate includes 'projection', 'association', 'jacobian'
-			# illustrate = set(),
-			illustrate = set(['projection']),
-			verbose_on = True)
 
+
+	trial = proceed_until(	img_pts = img_pts, 
+						space_pts = space_pts,
+						tru_proj_params = tru_proj_params,
+						projection_fcn = project_rotate,
+						jacobian_fcn = proj_rotate_jacobian,
+						associate_fcn = associate_points_cheating,
+						guess_params = guess_params,
+						illustrate = set(),
+						verbose_on = True,
+						
+						max_itr = 1000, 
+						perc_recov_required = 98.5);
+
+	print trial
+	print "that took %f seconds" % (time() - time_start)
+	
+	"""
 	# print results to console
 	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
 	   (guess_params['mat_00'], guess_params['mat_01'],
@@ -346,13 +409,10 @@ if __name__ == "__main__":
 	print "est   params = [%.2f, %.2f, %.2f, %.2f]" % \
 	   (est_params['mat_00'], est_params['mat_01'],
 	    est_params['mat_10'], est_params['mat_11'])
-	g = np.array([guess_params[k] for k in guess_params.keys()])
-	t = np.array([tru_proj_params[k] for k in guess_params.keys()])
-	e = np.array([est_params[k] for k in guess_params.keys()])
-	g_err = np.linalg.norm(g - t)
-	e_err =  np.linalg.norm(e - t)
-	recov = 1 - (e_err / g_err)
-	print "error recovery = %d%% (%.2f => %.2f)" % (round(recov*100), g_err, e_err)
-	print "that took %f seconds" % (time() - time_start)
 
+	recov = estimate_error_recovery(guess_params, est_params, tru_proj_params)
+	print "error recovery = %d%% (%.2f => %.2f)" % (recov[0], recov[1], recov[2])
+
+	estimate_error_recovery(guess_params, est_params, tru_proj_params)
+	"""
 
