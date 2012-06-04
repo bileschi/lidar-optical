@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import math, sys, getopt
-from random import random
+from random import random, uniform
 from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
 import numpy as np
 import copy
@@ -218,7 +218,7 @@ def associate_points_cheating(img_pts = [], proj_pts = []):
 def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
-	for i in range(1, n_pts):
+	for i in range(0, n_pts):
 		x = 2 * random() - 1
 		y = 2 * random() - 1
 		space_pts.append((x, y))
@@ -304,8 +304,18 @@ def proceed_until(	img_pts,
 				max_itr = 20, 
 				perc_recov_required = 90):
 
+	"""
+		Will run estimate_projection_params with 1 iteration over and over
+		until either @param max_itr is hit, or @param perc_recov_required 
+		is reached
+
+		@return : upon success: ["finished", iterations completed]
+		@return : upon failure: ["not finished", percent recovered]
+	"""
+
 	steps_done = 0
 	perc_recov = 0
+	max_perc_recov = -np.inf
 	g_err = np.inf
 	e_err = np.inf
 	cur_est_params = guess_params
@@ -323,28 +333,30 @@ def proceed_until(	img_pts,
 
 		[perc_recov, g_err, e_err]  = estimate_error_recovery(guess_params, cur_est_params, 
 								tru_proj_params)
+		if perc_recov > max_perc_recov:
+			max_perc_recov = perc_recov
 		steps_done+=1
 		if verbose_on:
 			print `steps_done` + " of " + `max_itr`
 		
 	if steps_done == max_itr:
-		return ["not finished"]
+		return ["not finished", perc_recov]
 	elif perc_recov >= perc_recov_required:
-		return ["finished", steps_done, perc_recov]
+		return ["finished", steps_done]
 	else:
 		return ["an error occurred"]
 
-##########
-## MAIN ##
-##########
+def run_simulation(max_itr = 5, n_pts = 10, frac_spurious = 0, noise_std = 0, req_recovery = 80):
+	"""
+		basically is the old main ported to over here, so i can run 
+		many simulations in one go
 
-if __name__ == "__main__":
-	from time import time
+		will create a new problem, and then run the method "proceed_until" on that 
+		problem
 
+	"""
 	# Simulation parameters
 	time_start = time()
-	noise_std = .0025;
-	n_pts = 25;
 	real_rot = random()
 	tru_proj_params = {
 	  'mat_00': np.cos(real_rot),
@@ -352,7 +364,7 @@ if __name__ == "__main__":
 	  'mat_10': -np.sin(real_rot),
 	  'mat_11': np.cos(real_rot)
 	}
-	guess_rot = real_rot + .5 
+	guess_rot = real_rot + .5 #@SB why?
 	guess_params = {}
 	guess_params = {
 	  'mat_00': np.cos(guess_rot),
@@ -361,13 +373,6 @@ if __name__ == "__main__":
 	  'mat_11': np.cos(guess_rot)
 	}
 
-	# print to console the problem to solve.
-	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
-	   (guess_params['mat_00'], guess_params['mat_01'],
-	    guess_params['mat_10'], guess_params['mat_11'])
-	print "true  params = [%.2f, %.2f, %.2f, %.2f]" % \
-	   (tru_proj_params['mat_00'], tru_proj_params['mat_01'],
-	    tru_proj_params['mat_10'], tru_proj_params['mat_11'])
 
 	# generate random space points
 	space_pts = gen_rand_space_pts(n_pts)
@@ -381,23 +386,125 @@ if __name__ == "__main__":
 		img_pts.append((img_x + noise_x, img_y + noise_y))
 
 
+	#add spurious points
+	n_spurious = int(round(n_pts*frac_spurious))
+	spurious_pts = []
+	for i in range(n_spurious):
+		img_pts.append([uniform(-1,1), uniform(-1,1)])
+
 
 	trial = proceed_until(	img_pts = img_pts, 
 						space_pts = space_pts,
 						tru_proj_params = tru_proj_params,
 						projection_fcn = project_rotate,
 						jacobian_fcn = proj_rotate_jacobian,
-						associate_fcn = associate_points_cheating,
+						associate_fcn = associate_points_all_to_nearest,
 						guess_params = guess_params,
 						illustrate = set(),
-						verbose_on = True,
-						
-						max_itr = 1000, 
-						perc_recov_required = 98.5);
+						verbose_on = False,
+						max_itr = max_itr, 
+						perc_recov_required = req_recovery);
 
-	print trial
-	print "that took %f seconds" % (time() - time_start)
+	trial.append(time() - time_start)
+	return trial
+
+##########
+## MAIN ##
+##########
+
+#the weird file io placements are intentional, so that i can see the file as it updates.
+if __name__ == "__main__":
+	from time import time
+
+	#erase file
+	f = open('./param_sweep.txt', 'w')
+	f.close();
+
+	req_recovery = 90
+	num_trials = 20
+	max_itr = 50
+	noise_std  = 0;
+	n_pts_list = [10,20,50,100,250]
+	#n_pts_list = [3]
+	frac_spurious_list = [0,.25,.5,1,1.5]
+
+	f = open('./param_sweep.txt', 'a')
+	print "required recovery : " + `req_recovery`
+	f.write("required recovery : " + `req_recovery`+"\n")
+	print "max_itr : " + `max_itr`
+	f.write("max_itr : " + `max_itr`+"\n")
+	print "noise : " + `noise_std` + "\n"
+	f.write("noise : " + `noise_std` + "\n"+"\n")
+	f.close()
 	
+	for n_pts in n_pts_list:
+		for frac_spurious in frac_spurious_list:
+			f = open('./param_sweep.txt', 'a') # so that i can see progress
+
+			print "num points = "  + `n_pts`
+			f.write("num points = "  + `n_pts`+"\n")
+			print "frac spurious = " + `frac_spurious`
+			f.write("frac spurious = " + `frac_spurious`+"\n")
+			print "------------------------------"
+			f.write("------------------------------"+"\n")
+
+			failures = []
+			successes = []
+			for i in range(num_trials):
+				current_run = run_simulation(		max_itr = max_itr, 
+											n_pts = n_pts, 
+											frac_spurious = frac_spurious,
+											noise_std = noise_std,
+											req_recovery = req_recovery)
+				if current_run[0] == 'not finished':
+					failures.append(current_run)
+				else:
+					successes.append(current_run)
+			print "% successful : " +  `((len(successes)+ 0.0)/num_trials)`
+			f.write("% successful : " +  `((len(successes)+ 0.0)/num_trials)`+"\n")
+
+			if len(successes) != 0:
+				total_time = 0
+				total_itr = 0
+				for sum_idx in range(len(successes)):
+					total_time += successes[sum_idx][2]
+					total_itr += successes[sum_idx][1]
+				print "avg iterations for successful: " + `(total_itr/len(successes))`
+				f.write("avg iterations for successful: " + `(total_itr/len(successes))`+"\n")
+				print "avg time for successful: " + `(total_time/len(successes))` 
+				f.write("avg time for successful: " + `(total_time/len(successes))`+"\n\n")
+			else:
+				print "no successes"
+				f.write("no successes"+"\n")
+
+			print
+
+			if len(failures) != 0:
+				total_recovered = 0
+				total_time = 0
+				for sum_idx in range(len(failures)):
+					total_time += failures[sum_idx][2]
+					total_recovered += failures[sum_idx][1]
+				print "avg recovery for failures: " + `(total_recovered/len(failures))`
+				f.write("avg recovery for failures: " + `(total_recovered/len(failures))`+"\n")
+				print "avg time for failures: " + `(total_time/len(failures))` 
+				f.write("avg time for failures: " + `(total_time/len(failures))`+"\n")
+			else:
+				print "no failures"	
+				f.write("no failures"+"\n")
+
+			print "\n"	
+			f.write("\n\n")
+
+			f.close()
+
+
+	"""
+	print "\n"
+	print successes
+	print "\n"
+	print failures
+	"""
 	"""
 	# print results to console
 	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
