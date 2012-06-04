@@ -143,6 +143,7 @@ def associate_points_all_to_all(img_pts = [], proj_pts = []):
 	a['confidences'] = confidences
 	return a
 
+#@CONSDIER http://projects.scipy.org/scikits/wiki/AnnWrapper
 # Associate space points to nearby image points.
 def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
 	""" Returns a datastructure (dict) containing:
@@ -422,7 +423,7 @@ if __name__ == "__main__":
 
 	req_recovery = 90
 	num_trials = 20
-	max_itr = 50
+	max_itr = 100 #@CONSIDER larger?
 	noise_std  = 0;
 	n_pts_list = [10,20,50,100,250]
 	#n_pts_list = [3]
@@ -505,21 +506,5 @@ if __name__ == "__main__":
 	print "\n"
 	print failures
 	"""
-	"""
-	# print results to console
-	print "guess params = [%.2f, %.2f, %.2f, %.2f]" % \
-	   (guess_params['mat_00'], guess_params['mat_01'],
-	    guess_params['mat_10'], guess_params['mat_11'])
-	print "true  params = [%.2f, %.2f, %.2f, %.2f]" % \
-	   (tru_proj_params['mat_00'], tru_proj_params['mat_01'],
-	    tru_proj_params['mat_10'], tru_proj_params['mat_11'])
-	print "est   params = [%.2f, %.2f, %.2f, %.2f]" % \
-	   (est_params['mat_00'], est_params['mat_01'],
-	    est_params['mat_10'], est_params['mat_11'])
-
-	recov = estimate_error_recovery(guess_params, est_params, tru_proj_params)
-	print "error recovery = %d%% (%.2f => %.2f)" % (recov[0], recov[1], recov[2])
-
-	estimate_error_recovery(guess_params, est_params, tru_proj_params)
 	"""
 
