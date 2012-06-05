@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import math, sys, getopt
 from random import random, uniform
-from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
+#from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
 import numpy as np
 import copy
 import pdb
@@ -423,8 +423,7 @@ if __name__ == "__main__":
 
 	req_recovery = 90
 	num_trials = 20
-	max_itr = 100 #@CONSIDER larger?
-	noise_std  = 0;
+	max_itr = 50 #@CONSIDER larger?	noise_std  = 0;
 	n_pts_list = [10,20,50,100,250]
 	#n_pts_list = [3]
 	frac_spurious_list = [0,.25,.5,1,1.5]
@@ -505,6 +504,5 @@ if __name__ == "__main__":
 	print successes
 	print "\n"
 	print failures
-	"""
 	"""
 
