@@ -7,19 +7,16 @@ def illustrate_points(img_pts, proj_pts, draw_associations = True):
 	"""scatter plot of two point sets"""
 	plt.figure(0)
 	plt.clf()
-	#plt.plot([x for [x,y] in img_pts], [y for [x,y] in img_pts], 'ro')
+	plt.plot([x for [x,y] in img_pts], [y for [x,y] in img_pts], 'ro')
 	plt.plot([x for [x,y] in proj_pts], [y for [x,y] in proj_pts], 'bx')
 	plt.axis([-7, 7, -5, 5])
 	plt.grid(True)
 	plt.title('image points in red.  projection points in blue.')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	#commented out because we now have spurious points.
-	""" 
 	if draw_associations:
 		for (img_idx, img_pt) in enumerate(img_pts):
 			draw_line(img_pts[img_idx], proj_pts[img_idx], color='#dddddd')
-	"""
 	plt.show()
 	plt.pause(0.01)
 

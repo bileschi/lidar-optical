@@ -40,7 +40,7 @@ def estimate_projection_params(
 		proj_pts = [projection_fcn(s_pt, proj_params) for s_pt in space_pts]
 		# Draw current state of alignment
 		if ('projection' in illustrate):
-			illustrate_points(img_pts = img_pts, proj_pts = proj_pts)
+			illustrate_points(img_pts = img_pts, proj_pts = proj_pts, draw_associations = False)
 		if (verbose_on):
 			print "iteration = " + `i+1`
 		# Associate projected space-points to nearby image-points
