@@ -418,17 +418,18 @@ if __name__ == "__main__":
 	from time import time
 
 	#erase file
-	f = open('./param_sweep.txt', 'w')
+	f = open('../../results/param_sweep.txt', 'w')
 	f.close();
 
 	req_recovery = 90
 	num_trials = 20
-	max_itr = 50 #@CONSIDER larger?	noise_std  = 0;
+	max_itr = 50 #@CONSIDER larger?
+	noise_std  = 0;
 	n_pts_list = [10,20,50,100,250]
 	#n_pts_list = [3]
 	frac_spurious_list = [0,.25,.5,1,1.5]
 
-	f = open('./param_sweep.txt', 'a')
+	f = open('../../results/param_sweep.txt', 'a')
 	print "required recovery : " + `req_recovery`
 	f.write("required recovery : " + `req_recovery`+"\n")
 	print "max_itr : " + `max_itr`
@@ -439,7 +440,7 @@ if __name__ == "__main__":
 	
 	for n_pts in n_pts_list:
 		for frac_spurious in frac_spurious_list:
-			f = open('./param_sweep.txt', 'a') # so that i can see progress
+			f = open('../../results/param_sweep.txt', 'a') # so that i can see progress
 
 			print "num points = "  + `n_pts`
 			f.write("num points = "  + `n_pts`+"\n")
