@@ -35,3 +35,4 @@ associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtre
 itr = 100
 error recovery = 21% (0.70 => 0.55)
 that took 128.364763 seconds
+ 
