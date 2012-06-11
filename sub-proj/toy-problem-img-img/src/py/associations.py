@@ -8,7 +8,7 @@ def img_pt_subtract(pt1, pt2):
 
 
 # Associate space points to nearby image points.
-def associate_points_all_to_all(img_pts = [], proj_pts = []):
+def all_to_all(img_pts = [], proj_pts = []):
 	""" Returns a datastructure (dict) containing:
 	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
 	offsets: a list of vectors img_p - proj_p 
@@ -36,7 +36,7 @@ def associate_points_all_to_all(img_pts = [], proj_pts = []):
 	return a
 
 # Associate space points to nearby image points.
-def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
+def all_to_nearest(img_pts = [], proj_pts = []):
 	""" Returns a datastructure (dict) containing:
 	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
 	offsets: a list of vectors img_p - proj_p 
@@ -73,7 +73,7 @@ def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
 	return a
 
 # Associate space points to image points at the same index.
-def associate_points_cheating(img_pts = [], proj_pts = []):
+def cheating(img_pts = [], proj_pts = []):
 	""" Returns a datastructure (dict) containing:
 	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
 	offsets: a list of vectors img_p - proj_p 
@@ -108,7 +108,7 @@ def associate_points_cheating(img_pts = [], proj_pts = []):
 
 
 
-def associate_knn(proj_pts = [], kdtree = None, k = 1, eps = 0):
+def knn(proj_pts = [], kdtree = None, k = 1, eps = 0):
 	""" Returns a datastructure (dict) containing:
 	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
 	offsets: a list of vectors img_p - proj_p 

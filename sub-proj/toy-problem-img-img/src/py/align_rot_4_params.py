@@ -1,7 +1,8 @@
 #!/usr/bin/python
 import math, sys, getopt
+from scipy import spatial
 from random import random
-from associations import *
+import associations
 from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
 import numpy as np
 import copy
@@ -229,10 +230,10 @@ if __name__ == "__main__":
 			space_pts = space_pts,
 			projection_fcn = project_rotate,
 			jacobian_fcn = proj_rotate_jacobian,
-			# associate_fcn = associate_points_all_to_all,
-			# associate_fcn = associate_points_all_to_nearest,
-			# associate_fcn = associate_points_cheating,
-			associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
+			# associate_fcn = associations.all_to_all,
+			# associate_fcn = associations.all_to_nearest,
+			# associate_fcn = associations.cheating,
+			associate_fcn = lambda img_pts, proj_pts: associations.knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
 			guess_params = guess_params,
 			iterations = 25,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
