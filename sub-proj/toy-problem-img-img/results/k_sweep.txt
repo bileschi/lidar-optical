@@ -1,0 +1,38 @@
+noise_std = 0;
+n_pts = 1000;
+guess_rot = real_rot + .5 
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=1, eps=np.inf),
+iterations = 500,
+error recovery = 17% (0.70 => 0.58)
+that took 257.584270 seconds
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
+error recovery = 21% (0.70 => 0.55)
+that took 393.755962 seconds
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=3, eps=np.inf),
+error recovery = 52% (0.70 => 0.33)
+that took 523.741678 seconds
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=4, eps=np.inf),
+error recovery = 97% (0.70 => 0.02)
+that took 634.478818 seconds
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=4, eps=np.inf),
+error recovery = 26% (0.70 => 0.52)
+that took 650.929784 seconds
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=5, eps=np.inf),
+
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=10, eps=np.inf),
+error recovery = -46% (0.70 => 1.02)
+that took 1389.606389 seconds
+
+
+
+associate_fcn = lambda img_pts, proj_pts: associate_knn(proj_pts=proj_pts, kdtree=kdtree, k=4, eps=np.inf),
+itr = 100
+error recovery = 21% (0.70 => 0.55)
+that took 128.364763 seconds
+ 

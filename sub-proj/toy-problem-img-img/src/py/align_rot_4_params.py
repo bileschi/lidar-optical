@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import math, sys, getopt
+from scipy import spatial
 from random import random
+import associations
 from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian
 import numpy as np
 import copy
@@ -113,112 +115,12 @@ def assocs_to_updates(assocs, img_pts, proj_pts, space_pts,
 			param_updates[assoc_idx, :] = -move_portion * Jinv.dot(offset)
 	return param_updates
 
-# Associate space points to nearby image points.
-def associate_points_all_to_all(img_pts = [], proj_pts = []):
-	""" Returns a datastructure (dict) containing:
-	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
-	offsets: a list of vectors img_p - proj_p 
-	distances: the L2 magnitude of the offsets
-	confidences: a weight to be placed on this association
-
-	Within each list, the item at index i refers to the same association.
-	"""
-	pair_indicies = []
-	offsets = []
-	distances = []
-	confidences = []
-	for i_img in range(0, len(img_pts)):
-		for i_proj in range(0, len(proj_pts)):
-			pair_indicies.append((i_img, i_proj))
-			offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
-			offsets.append(offset)
-			distances.append(np.linalg.norm((offset[0], offset[1])))
-			confidences.append(1)
-	a = {}
-	a['pair_indicies'] = pair_indicies
-	a['offsets'] = offsets
-	a['distances'] = distances
-	a['confidences'] = confidences
-	return a
-
-# Associate space points to nearby image points.
-def associate_points_all_to_nearest(img_pts = [], proj_pts = []):
-	""" Returns a datastructure (dict) containing:
-	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
-	offsets: a list of vectors img_p - proj_p 
-	distances: the L2 magnitude of the offsets
-	confidences: a weight to be placed on this association
-
-	Within each list, the item at index i refers to the same association.
-	associates each projected space point to the nearest image point.
-	"""
-	pair_indicies = []
-	offsets = []
-	distances = []
-	confidences = []
-	for i_proj in range(0, len(proj_pts)):
-		min_dist = np.inf
-		for i_img in range(0, len(img_pts)):
-			offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
-			dist = np.linalg.norm((offset[0], offset[1]))
-			if dist < min_dist:
-				best_pair = (i_img, i_proj)
-				best_offset = offset
-				best_dist = dist
-				best_conf = 1
-				min_dist = dist
-		pair_indicies.append(best_pair)
-		offsets.append(best_offset)
-		distances.append(best_dist)
-		confidences.append(best_conf)
-	a = {}
-	a['pair_indicies'] = pair_indicies
-	a['offsets'] = offsets
-	a['distances'] = distances
-	a['confidences'] = confidences
-	return a
-
-# Associate space points to image points at the same index.
-def associate_points_cheating(img_pts = [], proj_pts = []):
-	""" Returns a datastructure (dict) containing:
-	pair_indicies : a list of pairs of associated points as (img_p, proj_p)
-	offsets: a list of vectors img_p - proj_p 
-	distances: the L2 magnitude of the offsets
-	confidences: a weight to be placed on this association
-
-	Within each list, the item at index i refers to the same association.
-	associates each projected space point to the nearest image point.
-
-	This degenerate association gives the exact correct association
-	in the case where the img_pts are exactly the true projections of
-	the incorrectly projected proj_pts
-	"""
-	pair_indicies = []
-	offsets = []
-	distances = []
-	confidences = []
-	for i_proj in range(0, len(proj_pts)):
-		i_img = i_proj
-		offset = img_pt_subtract(img_pts[i_img], proj_pts[i_proj])
-		dist = np.linalg.norm((offset[0], offset[1]))
-		pair_indicies.append((i_img, i_proj))
-		offsets.append(offset)
-		distances.append(dist)
-		confidences.append(1)
-	a = {}
-	a['pair_indicies'] = pair_indicies
-	a['offsets'] = offsets
-	a['distances'] = distances
-	a['confidences'] = confidences
-	return a
-
-
 def gen_rand_space_pts(n_pts = 5):
 	" picks n_pts randomly in 2d. unit box.  pts returned as list-of-tuples"
 	space_pts = []
-	for i in range(1, n_pts):
-		x = 8 * random() - 4
-		y = 8 * random() - 4
+	for i in range(0, n_pts):
+		x = 2 * random() - 1
+		y = 2 * random() - 1
 		space_pts.append((x, y))
 
 	return space_pts
@@ -319,21 +221,25 @@ if __name__ == "__main__":
 		noise_y = random() * noise_std
 		img_pts.append((img_x + noise_x, img_y + noise_y))
 
+	# Build KDtree (if using approximate knn as association)
+	kdtree = spatial.KDTree(img_pts)
+
 	# perform optimization procedure to estimate true projection params
 	est_params = estimate_projection_params(
 			img_pts = img_pts, 
 			space_pts = space_pts,
 			projection_fcn = project_rotate,
 			jacobian_fcn = proj_rotate_jacobian,
-			# associate_fcn = associate_points_all_to_all,
-			associate_fcn = associate_points_all_to_nearest,
-			# associate_fcn = associate_points_cheating,
+			# associate_fcn = associations.all_to_all,
+			# associate_fcn = associations.all_to_nearest,
+			# associate_fcn = associations.cheating,
+			associate_fcn = lambda img_pts, proj_pts: associations.knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
 			guess_params = guess_params,
-			iterations = 20,
+			iterations = 25,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
-			# illustrate = set(),
-			illustrate = set(['projection']),
-			#illustrate = set(['projection', 'association', 'jacobian']),
+			illustrate = set(),
+			# illustrate = set(['projection', 'association']),
+			# illustrate = set(['projection', 'association', 'jacobian']),
 			verbose_on = True)
 
 	# print results to console
@@ -354,5 +260,3 @@ if __name__ == "__main__":
 	recov = 1 - (e_err / g_err)
 	print "error recovery = %d%% (%.2f => %.2f)" % (round(recov*100), g_err, e_err)
 	print "that took %f seconds" % (time() - time_start)
-
-

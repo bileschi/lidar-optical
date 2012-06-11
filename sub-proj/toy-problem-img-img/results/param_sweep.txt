@@ -1,0 +1,250 @@
+required recovery : 90
+max_itr : 200
+noise : 0
+
+num points = 10
+frac spurious = 0
+------------------------------
+% successful : 0.95
+avg iterations for successful: 14
+avg time for successful: 0.07899173937345806
+
+avg recovery for failures: 38.45
+avg time for failures: 0.9284050464630127
+
+
+num points = 10
+frac spurious = 0.25
+------------------------------
+% successful : 0.85
+avg iterations for successful: 17
+avg time for successful: 0.09451508522033691
+
+avg recovery for failures: 13.366666666666667
+avg time for failures: 1.0557023684183757
+
+
+num points = 10
+frac spurious = 0.5
+------------------------------
+% successful : 0.55
+avg iterations for successful: 16
+avg time for successful: 0.09332524646412242
+
+avg recovery for failures: 17.843333333333327
+avg time for failures: 1.152069330215454
+
+
+num points = 10
+frac spurious = 1
+------------------------------
+% successful : 0.35
+avg iterations for successful: 19
+avg time for successful: 0.13453027180262975
+
+avg recovery for failures: 18.033846153846152
+avg time for failures: 1.3804391714242787
+
+
+num points = 10
+frac spurious = 1.5
+------------------------------
+% successful : 0.15
+avg iterations for successful: 24
+avg time for successful: 0.18765497207641602
+
+avg recovery for failures: 21.112352941176468
+avg time for failures: 1.5957484245300293
+
+
+num points = 20
+frac spurious = 0
+------------------------------
+% successful : 0.75
+avg iterations for successful: 19
+avg time for successful: 0.25999741554260253
+
+avg recovery for failures: 24.622
+avg time for failures: 2.6363070011138916
+
+
+num points = 20
+frac spurious = 0.25
+------------------------------
+% successful : 0.6
+avg iterations for successful: 27
+avg time for successful: 0.41185758511225384
+
+avg recovery for failures: 28.28875
+avg time for failures: 3.0205212235450745
+
+
+num points = 20
+frac spurious = 0.5
+------------------------------
+% successful : 0.45
+avg iterations for successful: 29
+avg time for successful: 0.5242551432715522
+
+avg recovery for failures: 8.031818181818181
+avg time for failures: 3.5364709984172475
+
+
+num points = 20
+frac spurious = 1
+------------------------------
+% successful : 0.35
+avg iterations for successful: 25
+avg time for successful: 0.5621110371180943
+
+avg recovery for failures: 12.104615384615384
+avg time for failures: 4.427265992531409
+
+
+num points = 20
+frac spurious = 1.5
+------------------------------
+% successful : 0.35
+avg iterations for successful: 39
+avg time for successful: 1.040813786642892
+
+avg recovery for failures: 16.19769230769231
+avg time for failures: 5.32996155665471
+
+
+num points = 50
+frac spurious = 0
+------------------------------
+% successful : 0.7
+avg iterations for successful: 38
+avg time for successful: 2.42881601197379
+
+avg recovery for failures: 12.874999999999998
+avg time for failures: 12.726821303367615
+
+
+num points = 50
+frac spurious = 0.25
+------------------------------
+% successful : 0.45
+avg iterations for successful: 48
+avg time for successful: 3.809323867162069
+
+avg recovery for failures: 18.244545454545456
+avg time for failures: 15.6874652559107
+
+
+num points = 50
+frac spurious = 0.5
+------------------------------
+% successful : 0.25
+avg iterations for successful: 47
+avg time for successful: 4.359978723526001
+
+avg recovery for failures: 27.073333333333327
+avg time for failures: 18.28515741030375
+
+
+num points = 50
+frac spurious = 1
+------------------------------
+% successful : 0.25
+avg iterations for successful: 58
+avg time for successful: 6.918952798843383
+
+avg recovery for failures: 19.574666666666666
+avg time for failures: 23.815098985036215
+
+
+num points = 50
+frac spurious = 1.5
+------------------------------
+% successful : 0.15
+avg iterations for successful: 61
+avg time for successful: 9.036998589833578
+
+avg recovery for failures: 7.514117647058823
+avg time for failures: 29.513093261157763
+
+
+num points = 100
+frac spurious = 0
+------------------------------
+% successful : 0.6
+avg iterations for successful: 79
+avg time for successful: 17.956170201301575
+
+avg recovery for failures: 10.165
+avg time for failures: 45.65418964624405
+
+
+num points = 100
+frac spurious = 0.25
+------------------------------
+% successful : 0.45
+avg iterations for successful: 83
+avg time for successful: 23.964794211917454
+
+avg recovery for failures: 22.37090909090909
+avg time for failures: 58.78023719787598
+
+
+num points = 100
+frac spurious = 0.5
+------------------------------
+% successful : 0.15
+avg iterations for successful: 85
+avg time for successful: 28.823620716730755
+
+avg recovery for failures: 14.99764705882353
+avg time for failures: 67.60276205399457
+
+
+num points = 100
+frac spurious = 1
+------------------------------
+% successful : 0.25
+avg iterations for successful: 149
+avg time for successful: 67.0914879322052
+
+avg recovery for failures: 28.72533333333333
+avg time for failures: 89.72709101041158
+
+
+num points = 100
+frac spurious = 1.5
+------------------------------
+% successful : 0.0
+no successes
+avg recovery for failures: 10.1675
+avg time for failures: 111.70516347885132
+
+
+num points = 250
+frac spurious = 0
+------------------------------
+% successful : 0.3
+avg iterations for successful: 137
+avg time for successful: 182.49208315213522
+
+avg recovery for failures: 37.75571428571429
+avg time for failures: 266.064769080707
+
+
+num points = 250
+frac spurious = 0.25
+------------------------------
+% successful : 0.2
+avg iterations for successful: 161
+avg time for successful: 270.6187460422516
+
+avg recovery for failures: 33.36375
+avg time for failures: 336.7924561947584
+
+
+num points = 250
+frac spurious = 0.5
+------------------------------
+num points = 10
+frac spurious = 0.25
+------------------------------
