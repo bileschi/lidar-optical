@@ -126,23 +126,30 @@ def knn(proj_pts = [], kdtree = None, k = 1, eps = 0):
 	offsets = []
 	dists = []
 	img_pts = kdtree.data
+	confs = []
+	overall_sum = sum([1.0/(i_k+1) for i_k in range(0, k)])
+	conf_lookup = [1.0/(i_k+1) / overall_sum for i_k in range(0,k)]
+	
 	for i_proj, proj_pt in enumerate(proj_pts):
 		for i_k in range(0, k):
 			# pdb.set_trace()
 			if (k == 1):
 				i_img = tree_idx_mat[0, i_proj]
 				dists.append(dists_mat[0, i_proj])
+				confs.append(1)
 			else:
 				i_img = tree_idx_mat[0, i_proj, i_k]
 				dists.append(dists_mat[0, i_proj, i_k])
+				confs.append(conf_lookup[i_k])
 			img_pt = img_pts[i_img]
 			offset = img_pt_subtract(img_pt, proj_pt)
 			offsets.append(offset)
 			pair_indicies.append((i_img, i_proj))
+		#print confs
 	a = {}
 	a['pair_indicies'] = pair_indicies
 	a['offsets'] = offsets
 	a['distances'] = dists
-	a['confidences'] = np.ones(len(dists))
+	a['confidences'] = confs #maybe can make this faster
 	return a
 

@@ -112,7 +112,8 @@ def assocs_to_updates(assocs, img_pts, proj_pts, space_pts,
 			# derivative of projection WRT params
 			J = jacobian_fcn(space_pt, current_params = current_params)
 			Jinv = J.I # deriv of params WRT projection
-			param_updates[assoc_idx, :] = -move_portion * Jinv.dot(offset)
+			param_updates[assoc_idx, :] = -conf * move_portion * Jinv.dot(offset)
+	#print param_updates
 	return param_updates
 
 def gen_rand_space_pts(n_pts = 5):
@@ -233,12 +234,12 @@ if __name__ == "__main__":
 			# associate_fcn = associations.all_to_all,
 			# associate_fcn = associations.all_to_nearest,
 			# associate_fcn = associations.cheating,
-			associate_fcn = lambda img_pts, proj_pts: associations.knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
+			associate_fcn = lambda img_pts, proj_pts: knn(proj_pts=proj_pts, kdtree=kdtree, k=3, eps=np.inf),
 			guess_params = guess_params,
 			iterations = 25,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
-			illustrate = set(),
-			# illustrate = set(['projection', 'association']),
+			# illustrate = set(),
+			illustrate = set(['projection', 'association']),
 			# illustrate = set(['projection', 'association', 'jacobian']),
 			verbose_on = True)
 
