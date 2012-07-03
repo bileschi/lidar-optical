@@ -23,7 +23,7 @@ def get_box():
 	box.append((+1,-1,-1.0))
 	return box
 
-def get_default_camera(size=1, k=1):
+def get_default_camera(size=2, k=1):
 	""" lines describing a camera oriented down the z axis"""
 	cam = []
 	k = k * size/2.0
@@ -32,10 +32,10 @@ def get_default_camera(size=1, k=1):
 	cam.append([(0,0,0), (-k,-k,size)])
 	cam.append([(0,0,0), (-k,+k,size)])
 	cam.append([(+k,+k,size), (+k,-k,size)])
-	cam.append([(-k,+k,size), (-k,-k,size)])
+	cam.append([(+k,-k,size), (-k,-k,size)])
 	cam.append([(-k,-k,size), (-k,+k,size)])
-	cam.append([(-k,+k,size), (+k,+k,1)])
-	cam.append([(0,0,0), (0,+k,1)]) # top marker
+	cam.append([(-k,+k,size), (+k,+k,size)])
+	cam.append([(0,0,0), (0,+k,size)]) # top marker
 	return cam
 
 def move_camera(in_cam, t=np.mat([0,0,0]), R=np.mat(np.diag([1,1,1]))):
@@ -79,8 +79,9 @@ def draw_all(
 
 def projection(pts, t, R):
 	imgs = []
+	RI = R.I
 	for pt in pts:
-		tpt = R.dot((pt + t).T)
+		tpt = RI.dot((pt - t).T)
 		denom = tpt.item(2)
 		if(denom == 0):
 			imgs.append(np.mat([np.nan, np.nan]))
@@ -105,10 +106,46 @@ def randrange(n, vmin, vmax):
     return (vmax-vmin)*np.random.rand(n) + vmin
 
 
+
+def x_rot(rads):
+  return np.matrix([
+  [1,0,0], 
+  [0, np.cos(rads), -np.sin(rads)],
+  [0, np.sin(rads), np.cos(rads)]])
+
+def y_rot(rads):
+  return np.matrix([
+  [np.cos(rads), 0, np.sin(rads)],
+  [0, 1, 0], 
+  [-np.sin(rads), 0, np.cos(rads)]])
+
+def z_rot(rads):
+  return np.matrix([
+  [np.cos(rads), -np.sin(rads), 0],
+  [np.sin(rads), np.cos(rads), 0],
+  [0,0,1]]) 
+
+def rot_mat(x_rads = 0 , y_rads = 0, z_rads = 0):
+	x_mat = x_rot(x_rads)
+	y_mat = y_rot(y_rads)
+	z_mat = z_rot(z_rads)
+	return x_mat.dot(y_mat.dot(z_mat))
+
 def param_sweep():
-	for z in range(-10,-2):
-		cam_t = np.mat([0.0, 0.0, z])
-		draw_all(cam_t = cam_t)
+	# cam_R = np.mat(np.diag([1,1,1]))
+	# for z in range(-10,-2):
+	# 	cam_t = np.mat([0.0, 0.0, z])
+	# 	draw_all(cam_t = cam_t, cam_R = cam_R)
+	cam_t = np.mat([0.0, 0.0, -5])
+	for rot_z_deg in range(0,180, 15):
+		cam_R = rot_mat(z_rads = np.deg2rad(rot_z_deg))
+		cam_t = np.mat([0.0, 0.0, -5.0])
+		draw_all(cam_t = cam_t, cam_R = cam_R)
+	for rot_x_deg in range(0, 30, 5):
+		cam_R = rot_mat(x_rads = np.deg2rad(rot_x_deg), 
+			z_rads = np.deg2rad(rot_z_deg))
+		cam_t = np.mat([0.0, 0.0, -5.0])
+		draw_all(cam_t = cam_t, cam_R = cam_R)
 
 ##########
 # tests #
