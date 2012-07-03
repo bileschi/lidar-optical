@@ -4,22 +4,23 @@ import numpy as np
 from pylab import quiver, quiverkey
 from mpl_toolkits.mplot3d import Axes3D
 import colorsys
+import pdb
 
 """ illustrates the projection of 3d points into an image.  8 3d points in cube
 formation are illustrated in 3d, along with a movable camera.  The image of these
 points in the camera is shown in a second figure"""
 
 def get_box():
-	""" a 2x2x2 box at z = 10 """
+	""" a 2x2x2 box at (x,y,z) = (0,0,0) """
 	box = []
-	box.append((-1,1,10))
-	box.append((-1,-1,10))
-	box.append((1,1,10))
-	box.append((1,-1,10))
-	box.append((-1,1,12))
-	box.append((-1,-1,12))
-	box.append((1,1,12))
-	box.append((1,-1,12))
+	box.append((-1,+1,+1.0))
+	box.append((-1,-1,+1.0))
+	box.append((+1,+1,+1.0))
+	box.append((+1,-1,+1.0))
+	box.append((-1,+1,-1.0))
+	box.append((-1,-1,-1.0))
+	box.append((+1,+1,-1.0))
+	box.append((+1,-1,-1.0))
 	return box
 
 def get_default_camera(size=1, k=1):
@@ -47,7 +48,9 @@ def move_camera(in_cam, t=np.mat([0,0,0]), R=np.mat(np.diag([1,1,1]))):
 def rainbow_colors(n = 8):
 	return [colorsys.hsv_to_rgb(float(h)/n, 1.0, 1.0) for h in range(n)]
 
-def draw_all():
+def draw_all(
+	cam_t = np.mat([0,0,-10.0]),
+	cam_R = np.mat(np.diag([1,1,1]))):
 	# draw 3d frame.
 	fig = plt.figure(2)
 	plt.clf()
@@ -60,14 +63,30 @@ def draw_all():
 	ax1.set_xlabel('X')
 	ax1.set_ylabel('Y')
 	ax1.set_zlabel('Z')
-	cam_t = np.mat([0,0,0])
-	cam_R = np.mat(np.diag([1,1,1]))
 	cam = move_camera(get_default_camera(), cam_t, cam_R)
 	draw_camera(ax1, cam)
-	for offset in [1,3,5,9]:
-		cam_t2 = np.mat([offset, 0, 0])
-		cam2 = move_camera(get_default_camera(), cam_t2, cam_R)
-		draw_camera(ax1, cam2)
+	# draw image as seen by camera
+	box_img = projection(box, cam_t, cam_R)
+	ax2 = fig.add_subplot(212)
+	for p, c in zip(box_img, box_colors):
+		ax2.scatter(p.item(0), p.item(1), c=c, marker='^')
+	ax2.set_xlabel('U')
+	ax2.set_ylabel('V')
+	ax2.set_xbound(-2, 2)
+	ax2.set_ybound(-2, 2)
+	plt.show()
+	plt.pause(0.1)
+
+def projection(pts, t, R):
+	imgs = []
+	for pt in pts:
+		tpt = R.dot((pt + t).T)
+		denom = tpt.item(2)
+		if(denom == 0):
+			imgs.append(np.mat([np.nan, np.nan]))
+		else:
+			imgs.append(np.mat([tpt.item(0) / denom, tpt.item(1) / denom]))
+	return imgs
 
 def draw_camera(ax, cam, color=[0,0,0]):
 	for line in cam:
@@ -84,6 +103,12 @@ def draw_axis(ax, x_max = 12, y_max = 12, z_max = 12):
 
 def randrange(n, vmin, vmax):
     return (vmax-vmin)*np.random.rand(n) + vmin
+
+
+def param_sweep():
+	for z in range(-10,-2):
+		cam_t = np.mat([0.0, 0.0, z])
+		draw_all(cam_t = cam_t)
 
 ##########
 # tests #
