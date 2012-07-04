@@ -1,6 +1,7 @@
 import colorsys
 
 def rainbow_colors(n = 8):
+	"a list of n unique rgb tuples from around the hue ring"
 	return [colorsys.hsv_to_rgb(float(h)/n, 1.0, 1.0) for h in range(n)]
 
 ##########
