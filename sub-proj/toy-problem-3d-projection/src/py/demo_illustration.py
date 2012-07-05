@@ -4,7 +4,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from rotations_3d import rot_mat
 from color_lists import rainbow_colors
-from camera_illustration import move_camera, get_default_camera
+from camera_illustration import move_camera, get_default_camera, draw_camera, draw_3d_axis
 
 """ illustrates the projection of 3d points into an image.  8 3d points in cube
 formation are illustrated in 3d, along with a movable camera.  The image of these
@@ -22,22 +22,6 @@ def get_sample_points():
 	box.append((+1,+1,-1.0))
 	box.append((+1,-1,-1.0))
 	return box
-
-def draw_camera(ax, cam, color=[0,0,0]):
-	for line in cam:
-		ax.plot([line[0].item(0), line[1].item(0)], 
-			[line[0].item(1), line[1].item(1)],
-			[line[0].item(2), line[1].item(2)],
-			c=color)
-
-def draw_3d_axis(ax, x_max = 12, y_max = 12, z_max = 12):
-	for direction, color in zip((1, -1), [[0.3, 0.3, 0.3], [0.7, 0.3, 0.3]]):
-		for point in np.diag(direction * np.array([x_max, y_max, z_max])):
-			ax.plot([point[0]], [point[1]], [point[2]], 'w')
-			ax.plot([0, point[0]], [0, point[1]], [0, point[2]], c=color)
-	ax.set_xlabel('X')
-	ax.set_ylabel('Y')
-	ax.set_zlabel('Z')
 
 def draw_all(
 	pts3d,
