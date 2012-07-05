@@ -6,6 +6,27 @@ Tools to project 3d points into a 2d image.
 Data is expected to be in np.mat format.  Some functions allow for array-like input.
 """
 
+def image_points(space_points, cam_params):
+	imgs = []
+	RI = cam_params['R'].I
+	k = cam_params['k']
+	cx = cam_params['cx']
+	cy = cam_params['cy']
+	for pt in space_points:
+		tpt = RI.dot((pt - cam_params['t']).T)
+		denom = tpt.item(2)
+		if(denom == 0):
+			imgs.append(np.mat([np.nan, np.nan]))
+		elif denom < 0:
+			continue # point is behind camera
+		else:
+			px = k * tpt.item(0) / denom + cx
+			py = k * tpt.item(1) / denom + cy
+			if (px < 0) or (py < 0) or (px > (cx * 2)) or (py > (cy * 2)):
+				continue # point outside camera frame
+			imgs.append(np.mat([px, py]))
+	return imgs
+
 def norm(mat):
 	v = mat.dot(mat.transpose()).item(0) ** .5
 
