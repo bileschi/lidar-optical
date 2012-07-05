@@ -3,7 +3,7 @@ import numpy as np
 
 """
 Tools to project 3d points into a 2d image.
-Data is expected to be in np.mat format, though some leniency is built in.
+Data is expected to be in np.mat format.  Some functions allow for array-like input.
 """
 
 def norm(mat):
