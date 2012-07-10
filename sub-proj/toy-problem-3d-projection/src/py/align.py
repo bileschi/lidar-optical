@@ -11,7 +11,8 @@ import associations
 from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian, illustrate_toy_problem
 import copy
 import pdb
-from projection_3d_pt import image_points
+from projection_3d_pt import project_3d
+from optimization import estimate_projection_params
 
 def rand_sample_cube(n_pts=1, x_min=0, x_max=1, y_min=0, y_max=1, z_min=0, z_max=1):
 	" picks n_pts randomly in 3d. unit box.  pts returned as list-of-xyz-tuples"
@@ -53,50 +54,59 @@ def gen_3d_toy_problem():
 		y_min=-10, y_max=10,
 		z_min=10, z_max=50)
 	true_params = select_initial_camera_pose()
-	img_pts = image_points(space_pts, true_params)
+	img_pts = project_3d(space_pts, true_params)
 	guess_params = mutate_camera_params(true_params)
 	return [space_pts, img_pts, true_params, guess_params]
 
+def proj_rotate_jacobian(space_pt = None, current_params = None):
+	"""
+	Let i = f(s,p) where f is a function from space S to space I.
+	f is the function calculating the projection of s, parameterized by p. 
+
+	proj_rotate_jacobian calculates the partial derivatives of i with respect to 
+	p.  In general, the derivative may depend on the space_point s.
+
+	
+	Input:
+	space_pt: the tuple representing the point in space to project
+	current_params: p.  a dict or sequence indicating the current param settings p
+
+	Output:
+	Output array[m,n] is partial derivative of i[m] W.R.T. p[n]
+	"""
+	(sx, sy) = space_pt
+	m00 = current_params[0]
+	m01 = current_params[1]
+	m10 = current_params[2]
+	m11 = current_params[3]
+	return -np.mat([[ sx, sy, 0, 0],
+				   [  0, 0, sx, sy]], np.double);
+
+
 if __name__ == "__main__":
 	[space_pts, img_pts, true_params, guess_params] = gen_3d_toy_problem()
-	# illustrate rotations
-	if False:
-		for i in range(0,10):
-			guess_params = mutate_camera_params(guess_params, z_rot=0.1)
-			illustrate_toy_problem(space_pts, true_params, guess_params)
-			plt.pause(.2)
-		guess_params = true_params
-		for i in range(0,10):
-			guess_params = mutate_camera_params(guess_params, y_rot=0.1)
-			illustrate_toy_problem(space_pts, true_params, guess_params)
-			plt.pause(.2)
-		guess_params = true_params
-		for i in range(0,10):
-			guess_params = mutate_camera_params(guess_params, x_rot=0.1)
-			illustrate_toy_problem(space_pts, true_params, guess_params)
-			plt.pause(.2)
-		guess_params = true_params
-	# illustrate translations
-	for i in range(0,10):
-		guess_params = mutate_camera_params(guess_params, t_z=2)
-		illustrate_toy_problem(space_pts, true_params, guess_params)
-		plt.pause(.2)
-	guess_params = true_params
-	for i in range(0,10):
-		guess_params = mutate_camera_params(guess_params, t_y=2)
-		illustrate_toy_problem(space_pts, true_params, guess_params)
-		plt.pause(.2)
-	guess_params = true_params
-	for i in range(0,10):
-		guess_params = mutate_camera_params(guess_params, t_x=2)
-		illustrate_toy_problem(space_pts, true_params, guess_params)
-		plt.pause(.2)
-	guess_params = true_params
-	guess_params = mutate_camera_params(guess_params, k_mult=2)
-	for i in range(0,10):
-		guess_params = mutate_camera_params(guess_params, k_mult=0.8)
-		illustrate_toy_problem(space_pts, true_params, guess_params)
-		plt.pause(.2)
+	illustrate_toy_problem(space_pts, true_params, guess_params)
+	# Build KDtree (if using approximate knn as association)
+	kdtree = spatial.KDTree([pt.tolist()[0] for pt in img_pts])
+
+	# perform optimization procedure to estimate true projection params
+	est_params = estimate_projection_params(
+			img_pts = img_pts, 
+			space_pts = space_pts,
+			projection_fcn = project_3d,
+			jacobian_fcn = proj_3d_jacobian,
+			# associate_fcn = associations.all_to_all,
+			# associate_fcn = associations.all_to_nearest,
+			# associate_fcn = associations.cheating,
+			associate_fcn = lambda img_pts, proj_pts: associations.knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
+			guess_params = guess_params,
+			iterations = 25,
+			# valid illustrate includes 'projection', 'association', 'jacobian'
+			illustrate = set(),
+			# illustrate = set(['projection', 'association']),
+			# illustrate = set(['projection', 'association', 'jacobian']),
+			verbose_on = True)
+
 	# illustrate scaling
 	# (2) estimate true camera parameters 
 	#     from space points and true image points 

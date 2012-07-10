@@ -6,7 +6,7 @@ Tools to project 3d points into a 2d image.
 Data is expected to be in np.mat format.  Some functions allow for array-like input.
 """
 
-def image_points(space_points, cam_params):
+def project_3d(space_points, cam_params):
 	imgs = []
 	RI = cam_params['R'].I
 	k = cam_params['k']
