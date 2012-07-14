@@ -1,18 +1,20 @@
 #!/usr/bin/python
+#stdlib
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from rotations_3d import rot_mat
-from camera_illustration import move_camera, get_default_camera, draw_camera, draw_3d_axis
 from random import random
 import math, sys, getopt
 from scipy import spatial
-import associations
-from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian, illustrate_toy_problem
 import copy
 import pdb
-from projection_3d_pt import project_3d
+#local
+import associations
+from camera_illustration import move_camera, get_default_camera, draw_camera, draw_3d_axis
 from optimization import estimate_projection_params
+from projection_3d_pt import project_3d, proj_3d_jacobian
+from rotations_3d import rot_mat
+from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian, illustrate_toy_problem
 
 def rand_sample_cube(n_pts=1, x_min=0, x_max=1, y_min=0, y_max=1, z_min=0, z_max=1):
 	" picks n_pts randomly in 3d. unit box.  pts returned as list-of-xyz-tuples"
@@ -58,30 +60,6 @@ def gen_3d_toy_problem():
 	guess_params = mutate_camera_params(true_params)
 	return [space_pts, img_pts, true_params, guess_params]
 
-def proj_rotate_jacobian(space_pt = None, current_params = None):
-	"""
-	Let i = f(s,p) where f is a function from space S to space I.
-	f is the function calculating the projection of s, parameterized by p. 
-
-	proj_rotate_jacobian calculates the partial derivatives of i with respect to 
-	p.  In general, the derivative may depend on the space_point s.
-
-	
-	Input:
-	space_pt: the tuple representing the point in space to project
-	current_params: p.  a dict or sequence indicating the current param settings p
-
-	Output:
-	Output array[m,n] is partial derivative of i[m] W.R.T. p[n]
-	"""
-	(sx, sy) = space_pt
-	m00 = current_params[0]
-	m01 = current_params[1]
-	m10 = current_params[2]
-	m11 = current_params[3]
-	return -np.mat([[ sx, sy, 0, 0],
-				   [  0, 0, sx, sy]], np.double);
-
 
 if __name__ == "__main__":
 	[space_pts, img_pts, true_params, guess_params] = gen_3d_toy_problem()
@@ -98,7 +76,8 @@ if __name__ == "__main__":
 			# associate_fcn = associations.all_to_all,
 			# associate_fcn = associations.all_to_nearest,
 			# associate_fcn = associations.cheating,
-			associate_fcn = lambda img_pts, proj_pts: associations.knn(proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
+			associate_fcn = lambda img_pts, proj_pts: associations.knn(
+				proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
 			guess_params = guess_params,
 			iterations = 25,
 			# valid illustrate includes 'projection', 'association', 'jacobian'

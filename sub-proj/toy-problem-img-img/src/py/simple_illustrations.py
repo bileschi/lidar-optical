@@ -1,7 +1,9 @@
 #!/usr/bin/python
+#stdlib
 import matplotlib.pyplot as plt
 import numpy as np
 from pylab import quiver, quiverkey
+#local
 from color_lists import rainbow_colors
 from camera_illustration import draw_3d_axis, move_camera, draw_camera, get_default_camera
 from projection_3d_pt import project_3d
@@ -115,10 +117,16 @@ def illustrate_toy_problem(space_pts, true_params, guess_params,
 	ax1.set_title(title1)
 	ax2 = fig.add_subplot(212)
 	for p in true_img:
+		if p is None:
+			continue
 		ax2.scatter(p.item(0), p.item(1), c=true_color, marker='^')
 	for p in guess_img:
+		if p is None:
+			continue
 		ax2.scatter(p.item(0), p.item(1), c=guess_color, marker='^')
 	for p1, p2 in zip(true_img, guess_img):
+		if (p1 is None) or (p2 is None):
+			continue
 		plt.plot([p1.item(0), p2.item(0)], [p1.item(1), p2.item(1)], color='g')
 	ax2.set_xlabel('U')
 	ax2.set_ylabel('V')

@@ -1,7 +1,9 @@
 #!/usr/bin/python
+#stdlib
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+#local
 from rotations_3d import rot_mat
 from color_lists import rainbow_colors
 from camera_illustration import move_camera, get_default_camera, draw_camera, draw_3d_axis
