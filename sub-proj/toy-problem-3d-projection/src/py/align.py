@@ -12,7 +12,7 @@ import pdb
 import associations
 from camera_illustration import move_camera, get_default_camera, draw_camera, draw_3d_axis
 from optimization import estimate_projection_params
-from projection_3d_pt import project_3d, proj_3d_jacobian
+from projection_3d_pt import project_3d, proj_3d_jacobian, cam_P_to_dict
 from rotations_3d import rot_mat
 from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian, illustrate_toy_problem
 
@@ -57,12 +57,13 @@ def gen_3d_toy_problem():
 		z_min=10, z_max=50)
 	true_params = select_initial_camera_pose()
 	img_pts = project_3d(space_pts, true_params)
-	guess_params = mutate_camera_params(true_params)
+	guess_params = mutate_camera_params(true_params, x_rot=0.1)
 	return [space_pts, img_pts, true_params, guess_params]
-
 
 if __name__ == "__main__":
 	[space_pts, img_pts, true_params, guess_params] = gen_3d_toy_problem()
+	true_P_as_dict = cam_P_to_dict(true_params)
+	guess_P_as_dict = cam_P_to_dict(guess_params)
 	illustrate_toy_problem(space_pts, true_params, guess_params)
 	# Build KDtree (if using approximate knn as association)
 	kdtree = spatial.KDTree([pt.tolist()[0] for pt in img_pts])
@@ -78,7 +79,7 @@ if __name__ == "__main__":
 			# associate_fcn = associations.cheating,
 			associate_fcn = lambda img_pts, proj_pts: associations.knn(
 				proj_pts=proj_pts, kdtree=kdtree, k=2, eps=np.inf),
-			guess_params = guess_params,
+			guess_params = guess_P_as_dict,
 			iterations = 25,
 			# valid illustrate includes 'projection', 'association', 'jacobian'
 			illustrate = set(),

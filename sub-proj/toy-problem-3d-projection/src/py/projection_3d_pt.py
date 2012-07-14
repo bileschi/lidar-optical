@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import numpy as np
+import pdb
 
 """
 Tools to project 3d points into a 2d image.
@@ -91,6 +92,26 @@ def cam_as_list(cam_params):
 	P = proj_mat_from_cam_params(cam_params=cam_params)
 	return P.reshape((1,12)).tolist()[0]
 
+def cam_P_to_dict(cam_params):
+	P = proj_mat_from_cam_params(cam_params=cam_params)
+	return {
+		'p00':P.item(0),
+		'p01':P.item(1),
+		'p02':P.item(2),
+		'p03':P.item(3),
+
+		'p10':P.item(4),
+		'p11':P.item(5),
+		'p12':P.item(6),
+		'p13':P.item(7),
+
+		'p20':P.item(8),
+		'p21':P.item(9),
+		'p22':P.item(10),
+		'p23':P.item(11)}
+
+
+
 def proj_mat_from_cam_params(RI=None, k=None, cx=None, cy=None, t=None, 
 	cam_params=None):
 	"build projection matrix either from camera elements or cam-as-dict"
@@ -107,9 +128,12 @@ def proj_mat_from_cam_params(RI=None, k=None, cx=None, cy=None, t=None,
 def hspace_to_himg(hspace_pts, P):
 	P = np.mat(P).reshape((3,4))
 	h_img_pts = []
-	for h_spc_pt in hspace_pts:
-		h_img_pt = P.dot(np.mat(h_spc_pt).T)
-		h_img_pts.append(h_img_pt)
+	try:
+		for h_spc_pt in hspace_pts:
+			h_img_pt = P.dot(np.mat(h_spc_pt).T)
+			h_img_pts.append(h_img_pt)
+	except ValueError:
+		pdb.set_trace()
 	return h_img_pts
 
 def himg_to_pixel(himg_pts, cam_params):
@@ -151,8 +175,8 @@ def project_3d(space_pts, cam_params):
 		px_pts = himg_to_pixel(himg_pts, cam_params)
 		return px_pts
 	except TypeError:
-		#if the cam_params is just a projection matrix (no cx, cy) just return
-		return himg_pts
+		#if the cam_params is just a projection matrix (no cx, cy) use def
+		return  himg_to_pixel(himg_pts, {'cx':320, 'cy':240})
 
 def to_unhomg(p3):
 	return np.take(p3, range(0, p3.size-1), mode='wrap') / np.take(p3, [-1], mode='wrap')

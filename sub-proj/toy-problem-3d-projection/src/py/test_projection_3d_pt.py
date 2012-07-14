@@ -3,7 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 from random import random
 #local
-from projection_3d_pt import project_3d, project_3d_legacy, to_homg, to_unhomg, cam_as_list, proj_mat_from_cam_params, proj_3d_jacobian
+from projection_3d_pt import project_3d, project_3d_legacy, to_homg, to_unhomg, cam_as_list, proj_mat_from_cam_params, proj_3d_jacobian, cam_to_dict
 from rotations_3d import rot_mat
 from copy import copy
 
@@ -99,6 +99,12 @@ def test_unhomg():
 def test_cam_as_list():
 	l = cam_as_list(default_camera())
 	assert_allclose(l, [1000.0, 0.0, 320.0, 0.0, 0.0, 1000.0, 240.0, 0.0, 0.0, 0.0, 1.0, 0.0])
+
+def test_cam_to_dict():
+	l = cam_as_list(default_camera())
+	d = cam_to_dict(default_camera())
+	for (li, (k, di)) in zip(l, d.items()):
+		assert_allclose(li, di)
 
 def test_jacobian():
 	"""each element of jacobian J should represent how a small change in params 

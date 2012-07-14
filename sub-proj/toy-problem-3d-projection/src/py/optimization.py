@@ -1,3 +1,4 @@
+import pdb
 def estimate_projection_params(
 	img_pts,
 	space_pts,
@@ -19,7 +20,7 @@ def estimate_projection_params(
 	n_pts2 = len(space_pts)
 	for i in range(iterations):
 		# project the space points into the image domain
-		proj_pts = [projection_fcn(s_pt, proj_params) for s_pt in space_pts]
+		proj_pts = projection_fcn(space_pts, proj_params)
 		# Draw current state of alignment
 		if ('projection' in illustrate):
 			illustrate_points(img_pts = img_pts, proj_pts = proj_pts)
@@ -29,6 +30,8 @@ def estimate_projection_params(
 		# creating associated pairs.  Each pair infers an offset in image space.
 		# This offset infers a confidence in the association and a parameter
 		# manipulation to align the points.
+		print img_pts
+		print proj_pts
 		assocs = associate_fcn(img_pts = img_pts, proj_pts = proj_pts)
 		if ('association' in illustrate):
 			illustrate_assoc(img_pts = img_pts, proj_pts = proj_pts, assocs = assocs)
