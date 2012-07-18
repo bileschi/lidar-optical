@@ -1,0 +1,19 @@
+In [24]: run numpy_matrix_multiply.py
+np was  0:00:00.000011  slower on matrices of size  2 
+
+np was  0:00:00.000043  slower on matrices of size  4 
+
+np was  0:00:00.000276  slower on matrices of size  8 
+
+np was  0:00:00.003213  slower on matrices of size  16 
+
+np was  0:00:00.011327  slower on matrices of size  32 
+
+np was  0:00:00.100768  slower on matrices of size  64 
+
+np was  0:00:00.762696  slower on matrices of size  128 
+
+np was  0:00:06.282029  slower on matrices of size  256 
+
+np was  0:00:58.692019  slower on matrices of size  512 
+
