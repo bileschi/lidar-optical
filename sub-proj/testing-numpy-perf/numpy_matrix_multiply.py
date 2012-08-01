@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys, random, time, numpy as np
 from datetime import datetime
-
+from copy import copy
 
 #create matrix of size 
 def create_matrix_lists(rows, cols):
@@ -51,14 +51,37 @@ def timeThis(func, params):
 	return elapsed
 
 if __name__ == "__main__":
-	
-	n=2
-	while( n <= 1024):
-		m1 = create_matrix_lists(n,n)
-		m2 = create_matrix_lists(n,n)
-
-		print "np was ", timeThis(matrix_multiply, [m1, m2]) - timeThis(np.dot, [np.mat(m1), np.mat(m2)]), " slower on matrices of size ", n, "\n"
-		n = n * 2
+	sizes = [2**n for n in range(2,10)]
+	for n in sizes:
+		# first, select the numbers to fill the matricies
+		x1 = create_matrix_lists(n, n)
+		x2 = create_matrix_lists(n, n)
+		# calculate the time to copy the list of lists object.  
+		t1 = datetime.now()
+		m1 = copy(x1)
+		m2 = copy(x2)
+		t2 = datetime.now()
+		t_make_list = t2 - t1
+		# time numpy's matrix generation.
+		t1 = datetime.now()
+		M1 = np.mat(x1)
+		M2 = np.mat(x2)
+		t2 = datetime.now()
+		t_make_np = t2 - t1
+		# time the two multiplication routines
+		t_mult_list = timeThis(matrix_multiply, [m1, m2]);
+		t_mult_np = timeThis(np.dot, [M1, M2])
+		# pretty print output
+		if (t_make_np < t_make_list):
+			victor = "numpy"
+		else:
+			victor = "list"
+		print "  size %d make: %s wins by %fs" % (n, victor, (abs(t_make_list - t_make_np)).total_seconds())
+		if (t_mult_np < t_mult_list):
+			victor = "numpy"
+		else:
+			victor = "list"
+		print "  size %d mult: %s wins by %fs\n" % (n, victor, (abs(t_mult_list - t_mult_np)).total_seconds())
 
 
 

@@ -1,0 +1,24 @@
+  size 4 make: list wins by 0.000255s
+  size 4 mult: list wins by 0.000008s
+
+  size 8 make: list wins by 0.000327s
+  size 8 mult: numpy wins by 0.000386s
+
+  size 16 make: list wins by 0.000610s
+  size 16 mult: numpy wins by 0.002665s
+
+  size 32 make: list wins by 0.001325s
+  size 32 mult: numpy wins by 0.019610s
+
+  size 64 make: list wins by 0.003267s
+  size 64 mult: numpy wins by 0.150734s
+
+  size 128 make: list wins by 0.014615s
+  size 128 mult: numpy wins by 1.195785s
+
+  size 256 make: list wins by 0.031882s
+  size 256 mult: numpy wins by 10.326162s
+
+  size 512 make: list wins by 0.127057s
+  size 512 mult: numpy wins by 86.527709s
+
