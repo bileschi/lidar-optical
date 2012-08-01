@@ -3,7 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 from random import random
 #local
-from projection_3d_pt import project_3d, project_3d_legacy, to_homg, to_unhomg, cam_as_list, proj_mat_from_cam_params, proj_3d_jacobian, cam_to_dict
+from projection_3d_pt import project_3d, project_3d_legacy, to_homg, to_unhomg, cam_as_list, proj_mat_from_cam_params, proj_3d_jacobian, cam_P_to_dict
 from rotations_3d import rot_mat
 from copy import copy
 
@@ -102,8 +102,10 @@ def test_cam_as_list():
 
 def test_cam_to_dict():
 	l = cam_as_list(default_camera())
-	d = cam_to_dict(default_camera())
-	for (li, (k, di)) in zip(l, d.items()):
+	d = cam_P_to_dict(default_camera())
+	print "l = " + str(l)
+	print "d = " + str(d)
+	for (li, (k, di)) in zip(l, sorted(d.items())):
 		assert_allclose(li, di)
 
 def test_jacobian():
@@ -121,8 +123,10 @@ def test_jacobian():
 		P_mod = copy(P_as_list)
 		P_mod[i_param] = P_mod[i_param] + delta
 		img_mod = project_3d([space_pt], cam_params=P_mod)[0]
-		dx = to_unhomg(img_mod).item(0) - to_unhomg(img_center).item(0)
-		dy = to_unhomg(img_mod).item(1) - to_unhomg(img_center).item(1)
+		print "img_mod: " + str(img_mod)
+		print "img_center: " + str(img_center)
+		dx = img_mod.item(0) - img_center.item(0)
+		dy = img_mod.item(1) - img_center.item(1)
 		dx_predict = delta* J.item((0, i_param))
 		dy_predict = delta* J.item((1, i_param))
 		print i_param

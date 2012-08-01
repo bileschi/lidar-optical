@@ -1,4 +1,7 @@
 import pdb
+import numpy as np
+import copy
+
 def estimate_projection_params(
 	img_pts,
 	space_pts,
@@ -30,8 +33,10 @@ def estimate_projection_params(
 		# creating associated pairs.  Each pair infers an offset in image space.
 		# This offset infers a confidence in the association and a parameter
 		# manipulation to align the points.
-		print img_pts
-		print proj_pts
+
+		# these are lists of matricies
+		print "img_pts = " + str(img_pts)
+		print "proj_pts = " + str(proj_pts)
 		assocs = associate_fcn(img_pts = img_pts, proj_pts = proj_pts)
 		if ('association' in illustrate):
 			illustrate_assoc(img_pts = img_pts, proj_pts = proj_pts, assocs = assocs)

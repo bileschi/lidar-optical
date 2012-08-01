@@ -169,17 +169,12 @@ def project_3d(space_pts, cam_params):
 			cam_params['P'] = P
 	except TypeError: # cam params as list
 		P = np.mat(cam_params).reshape((3,4))
-	except ValueError: # cam params as a numpy array
-		P = np.mat(cam_params).reshape((3,4))
 	hspace_pts = [to_homg(pt) for pt in space_pts]
 	himg_pts = hspace_to_himg(hspace_pts, P)
 	try:
 		px_pts = himg_to_pixel(himg_pts, cam_params)
 		return px_pts
 	except TypeError:
-		#if the cam_params is just a projection matrix (no cx, cy) use def
-		return  himg_to_pixel(himg_pts, {'cx':320, 'cy':240})
-	except ValueError:
 		#if the cam_params is just a projection matrix (no cx, cy) use def
 		return  himg_to_pixel(himg_pts, {'cx':320, 'cy':240})
 

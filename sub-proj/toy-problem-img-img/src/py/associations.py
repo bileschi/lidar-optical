@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from scipy import spatial
 import numpy as np
-
+import pdb
 
 def img_pt_subtract(pt1, pt2):
 	return (pt1[0] - pt2[0], pt1[1] - pt2[1] )
@@ -136,6 +136,9 @@ def knn(proj_pts = [], kdtree = None, k = 1, eps = 0):
 				i_img = tree_idx_mat[0, i_proj, i_k]
 				dists.append(dists_mat[0, i_proj, i_k])
 			img_pt = img_pts[i_img]
+			print "img_pt = " + str(img_pt)
+			print "proj_pt = " + str(img_pt)
+			pdb.set_trace()
 			offset = img_pt_subtract(img_pt, proj_pt)
 			offsets.append(offset)
 			pair_indicies.append((i_img, i_proj))
