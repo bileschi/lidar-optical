@@ -3,10 +3,10 @@ import numpy as np
 from numpy.testing import assert_allclose
 from random import random
 from math import sqrt, pi
-#local
 from copy import copy
-from projection_3d_pt import *
-from rotations_3d import rot_mat
+#local
+from py.projection_3d_pt import *
+from py.rotations_3d import rot_mat
 
 def default_space_points():
 	space_points = [(0, 0, 10)]

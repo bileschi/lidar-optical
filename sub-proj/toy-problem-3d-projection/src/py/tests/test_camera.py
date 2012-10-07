@@ -1,5 +1,5 @@
 #stdlib
-from camera import *
+from py.camera import *
 from numpy.testing import assert_allclose
 import math
 
