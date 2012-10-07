@@ -4,6 +4,11 @@ import pdb
 from rotations_3d import rot_mat
 
 class Camera(object):
+	""" Camera represents an ideal projective camera, taking 3d points and mapping them
+	into a 2d space.  The translation parameters represent the position of the camera
+	in space.  The rotation parameters represent rotations applied to the camera,
+	independent of the translational position.
+	"""
 	# Camera does not store the individual rotation parameters (r_x, r_y, r_z)
 	# it only stores the computed rotation matrix R.
 	def __init__(self, 
@@ -35,7 +40,8 @@ class Camera(object):
 		return out_str
 
 	def proj_mat(self):
-		"build projection matrix from camera elements"
+		"""build projection matrix from camera elements.
+			P = K * Rinv * [I | -t]"""
 		RI = self.R.I
 		t = np.mat([self.t_x, self.t_y, self.t_z])
 		K = np.mat([[self.k, 0.0, self.c_x], [0.0, self.k, self.c_y], [0.0, 0.0, 1]])
@@ -72,7 +78,7 @@ class Camera(object):
 		r_y=0.0,
 		r_z=0.0,
 		k_mult=1.0):
-		""" Returns a new copoy of the camera, with modified parameters. 
+		""" Returns a new copy of the camera, with modified parameters. 
 			c_x and c_y are not modified """
 		cam2 = Camera(
 			t_x = self.t_x + t_x,

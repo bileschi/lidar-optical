@@ -59,3 +59,13 @@ def test_mutate():
 def test_proj_mat():
 	cam = Camera()
 	assert_allclose(cam.P, cam.proj_mat())
+
+def test_mutation_commutivity():
+	"rotate then translate vs translate then rotate"
+	cam1 = Camera()
+	cam1 = cam1.mutate(t_x = 10)
+	cam1 = cam1.mutate(r_x = .5, r_y = .5, r_z = .5)
+	cam2 = Camera()
+	cam2 = cam2.mutate(r_x = .5, r_y = .5, r_z = .5)
+	cam2 = cam2.mutate(t_x = 10)
+	assert_allclose(cam1.P, cam2.P)
