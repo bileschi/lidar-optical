@@ -1,6 +1,6 @@
 import numpy as np
 
-def get_default_camera(size=2, k=1):
+def get_cam_model(size=2, k=1):
 	""" lines describing a camera oriented down the z axis"""
 	cam = []
 	k = k * size/2.0
@@ -15,15 +15,20 @@ def get_default_camera(size=2, k=1):
 	cam.append([(0,0,0), (0,+k,size)]) # top marker
 	return cam
 
-def move_camera(in_cam, t=np.mat([0,0,0]), R=np.mat(np.diag([1,1,1]))):
+def move_camera_model(in_cam, t=np.mat([0,0,0]), R=np.mat(np.diag([1,1,1]))):
 	out_cam = []
 	for line in in_cam:
 		transformed_line = map(lambda pt: R.dot(pt) + t, line) # rotate then transalte
 		out_cam.append(transformed_line)
 	return out_cam
 
-def draw_camera(ax, cam, color=[0,0,0]):
-	for line in cam:
+def draw_camera(ax, cam, color=[0,0,0], size=2, k=1):
+	cam_model = get_cam_model(size=size, k=k)
+	cam_model = move_camera_model(cam_model, cam.t(), cam.R)
+	draw_camera_model(ax, cam_model, color=color)
+
+def draw_camera_model(ax, cam_model, color=[0,0,0]):
+	for line in cam_model:
 		ax.plot([line[0].item(0), line[1].item(0)], 
 			[line[0].item(1), line[1].item(1)],
 			[line[0].item(2), line[1].item(2)],

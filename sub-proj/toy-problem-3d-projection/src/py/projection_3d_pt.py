@@ -109,11 +109,13 @@ def himg_to_pixel(himg_pts, cam):
 
 def project_3d(space_pts, cam, clip_unviewable=True):
 	""" projects space_pts using matrix multiplication under the parameters 
-	stored in cam, the Camera type object."""
+	stored in cam.  Cam may be either a Camera object, or something
+	which may be turned into a 3x4 matrix."""
 	if type(cam) == Camera:
 		P = cam.P
 	else:
-		P = cam
+		print cam
+		P = np.mat(cam).reshape((3,4))
 		clip_unviewable = False # cant clip.  don't know clipping params.
 	hspace_pts = [to_homg(pt) for pt in space_pts]
 	himg_pts = hspace_to_himg(hspace_pts, P)

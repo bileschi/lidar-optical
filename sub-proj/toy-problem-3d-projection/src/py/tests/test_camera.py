@@ -27,6 +27,12 @@ def test_make_camera():
 	cam = Camera()
 	assert_allclose(cam.P, expected_default_P)
 
+def test_t():
+	cam = Camera()
+	cam = cam.mutate(t_x = 1, t_y = 2, t_z = 3)
+	t = cam.t()
+	assert_allclose(t, (1,2,3))
+
 def test_pretty_str():
 	"test is brittle.  maybe just check that the strings for two different cameras are different?"
 	cam = Camera()

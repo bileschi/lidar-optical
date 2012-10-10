@@ -1,6 +1,7 @@
 import pdb
 import numpy as np
 import copy
+from simple_illustrations import illustrate_points, illustrate_forces, illustrate_assoc, illustrate_jacobian, illustrate_toy_problem
 
 def estimate_projection_params(
 	img_pts,

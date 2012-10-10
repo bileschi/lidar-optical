@@ -31,6 +31,9 @@ class Camera(object):
 	def __str__(self):
 		return self.pretty_str()
 
+	def t(self):
+		return (self.t_x, self.t_y, self.t_z)
+
 	def pretty_str(self):
 		out_str = "camera object\n"
 		out_str += "trans: %f %f %f\n" % (self.t_x, self.t_y, self.t_z)
